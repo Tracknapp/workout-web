@@ -6,7 +6,7 @@ const http = httpRouter();
 
 const handleClerkWebhook = httpAction(async (ctx, request) => {
   const { data, type } = await request.json();
-  console.log("Clerk webhook received", data, type);
+
   switch (type) {
     case "user.created":
       await ctx.runMutation(internal.user.createUser, {
