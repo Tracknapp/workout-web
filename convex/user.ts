@@ -24,7 +24,7 @@ export const getUser = query({
   handler: async (ctx) => {
     const user = await ctx.auth.getUserIdentity();
     if (!user) {
-      throw new Error("Unauthorized");
+      return null;
     }
 
     return user;

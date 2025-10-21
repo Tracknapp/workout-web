@@ -10,11 +10,24 @@ import { ModeToggle } from "../mode-toggle";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Button } from "../ui/button";
-import { LogOut } from "lucide-react";
+import { LogOut, Loader2 } from "lucide-react";
+import { useAuth } from "@clerk/nextjs";
+import { useState } from "react";
 
 export function NavFooter() {
   const user = useQuery(api.user.getUser);
-  if (!user) return null;
+  const { signOut } = useAuth();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      setIsLoggingOut(true);
+      await signOut({ redirectUrl: "/sign-in" });
+    } catch (error) {
+      console.error("Logout failed:", error);
+      setIsLoggingOut(false);
+    }
+  };
 
   return (
     <SidebarFooter className="p-4">
@@ -22,17 +35,26 @@ export function NavFooter() {
         <SidebarMenuItem>
           <div className="flex items-center gap-2 justify-around">
             <Avatar className="h-8 w-8 rounded-full">
-              <AvatarImage src={user.pictureUrl} alt={user.name} />
+              <AvatarImage src={user?.pictureUrl} alt={user?.name} />
               <AvatarFallback className="rounded-full">
-                {user.givenName}
+                {user?.givenName}
               </AvatarFallback>
             </Avatar>
-            <p className="text-sm font-medium truncate">{user.givenName}</p>
+            <p className="text-sm font-medium truncate">{user?.givenName}</p>
 
             <div className="flex items-center gap-2">
               <ModeToggle />
-              <Button variant="ghost" size="icon">
-                <LogOut size={16} aria-hidden="true" />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+              >
+                {isLoggingOut ? (
+                  <Loader2 size={16} className="animate-spin" aria-hidden="true" />
+                ) : (
+                  <LogOut size={16} aria-hidden="true" />
+                )}
               </Button>
             </div>
           </div>
