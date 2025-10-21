@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { internalMutation } from "./_generated/server";
+import { internalMutation, query } from "./_generated/server";
 
 export const createUser = internalMutation({
   args: {
@@ -16,5 +16,17 @@ export const createUser = internalMutation({
     });
 
     return userId;
+  },
+});
+
+export const getUser = query({
+  args: {},
+  handler: async (ctx) => {
+    const user = await ctx.auth.getUserIdentity();
+    if (!user) {
+      throw new Error("Unauthorized");
+    }
+
+    return user;
   },
 });
