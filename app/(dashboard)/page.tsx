@@ -1,10 +1,3 @@
-import { ModeToggle } from "@/components/mode-toggle";
-
 export default function Home() {
-  return (
-    <div>
-      profile
-      <ModeToggle />
-    </div>
-  );
+  return <div>profile</div>;
 }

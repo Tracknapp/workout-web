@@ -4,6 +4,7 @@ import { Sidebar, SidebarContent } from "@/components/ui/sidebar";
 import {
   Clock10Icon,
   Dumbbell,
+  History,
   LayoutDashboardIcon,
   Settings,
 } from "lucide-react";
@@ -17,26 +18,26 @@ const data: SidebarData = {
     {
       id: "dashboard",
       title: "Dashboard",
-      url: "#",
+      url: "/dashboard",
       icon: LayoutDashboardIcon,
       isActive: true,
     },
     {
-      id: "routines",
-      title: "Routines",
-      url: "#",
+      id: "start-workout",
+      title: "Start Workout",
+      url: "/new-workout",
       icon: Clock10Icon,
     },
     {
-      id: "workouts",
-      title: "Workouts",
-      url: "#",
-      icon: Dumbbell,
+      id: "workouts-history",
+      title: "Workouts History",
+      url: "/history",
+      icon: History,
     },
     {
       id: "settings",
       title: "Settings",
-      url: "#",
+      url: "/settings",
       icon: Settings,
     },
   ],
