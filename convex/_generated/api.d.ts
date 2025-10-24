@@ -9,6 +9,7 @@
  */
 
 import type * as http from "../http.js";
+import type * as seed from "../seed.js";
 import type * as user from "../user.js";
 
 import type {
@@ -27,6 +28,7 @@ import type {
  */
 declare const fullApi: ApiFromModules<{
   http: typeof http;
+  seed: typeof seed;
   user: typeof user;
 }>;
 declare const fullApiWithMounts: typeof fullApi;
