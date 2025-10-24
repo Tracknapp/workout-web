@@ -33,6 +33,18 @@ export const Exercise = {
   instructions: v.array(v.string()),
 };
 
+export const Routine = {
+  name: v.string(),
+  userId: v.id("users"),
+};
+
+export const RoutineExercise = {
+  routineId: v.id("routines"),
+  exerciseId: v.string(), // References Exercise.exerciseId
+  order: v.number(),
+  notes: v.optional(v.string()),
+};
+
 export default defineSchema({
   users: defineTable(User)
     .index("byClerkId", ["clerkId"])
@@ -46,4 +58,9 @@ export default defineSchema({
   exercises: defineTable(Exercise)
     .index("byExerciseId", ["exerciseId"])
     .index("byName", ["name"]),
+  routines: defineTable(Routine)
+    .index("byUserId", ["userId"]),
+  routineExercises: defineTable(RoutineExercise)
+    .index("byRoutineId", ["routineId"])
+    .index("byExerciseId", ["exerciseId"]),
 });
