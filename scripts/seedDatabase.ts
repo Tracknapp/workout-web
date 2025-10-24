@@ -71,6 +71,7 @@ async function seedDatabase() {
     const firstBatch = exercises.slice(0, Math.min(BATCH_SIZE, exercises.length));
     const exercisesResult = await client.mutation(api.seed.seedExercises, {
       exercises: firstBatch,
+      totalCount: totalExercises,
     });
 
     if (exercisesResult.message.includes("already seeded")) {
@@ -83,6 +84,7 @@ async function seedDatabase() {
         const batch = exercises.slice(i, i + BATCH_SIZE);
         await client.mutation(api.seed.seedExercises, {
           exercises: batch,
+          totalCount: totalExercises,
         });
         const batchNumber = Math.ceil((i + 1) / BATCH_SIZE);
         const totalBatches = Math.ceil(totalExercises / BATCH_SIZE);

@@ -79,13 +79,16 @@ export const seedExercises = mutation({
         instructions: v.array(v.string()),
       })
     ),
+    totalCount: v.number(),
   },
   handler: async (ctx, args) => {
-    const count = await ctx.db.query("exercises").collect();
+    const existingExercises = await ctx.db.query("exercises").collect();
+    const currentCount = existingExercises.length;
 
-    if (count.length > 0) {
-      console.log(`Exercises already seeded (${count.length} records)`);
-      return { message: "Exercises already seeded", count: count.length };
+    // Only block if ALL exercises are already seeded
+    if (currentCount >= args.totalCount) {
+      console.log(`Exercises already seeded (${currentCount} records)`);
+      return { message: "Exercises already seeded", count: currentCount };
     }
 
     for (const exercise of args.exercises) {
