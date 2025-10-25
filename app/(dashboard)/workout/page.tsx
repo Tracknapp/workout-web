@@ -10,13 +10,19 @@ import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import type { Id } from "@/convex/_generated/dataModel";
 
 export default function NewWorkout() {
   const router = useRouter();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [routineName, setRoutineName] = useState("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [routineToDelete, setRoutineToDelete] = useState<Id<"routines"> | null>(
+    null
+  );
 
   const createRoutine = useMutation(api.routines.createRoutine);
+  const deleteRoutine = useMutation(api.routines.deleteRoutine);
   const routines = useQuery(api.routines.getUserRoutines);
 
   const handleCreateRoutine = async () => {
@@ -30,6 +36,25 @@ export default function NewWorkout() {
     } catch (error) {
       console.error("Failed to create routine:", error);
       toast.error("Failed to create routine. Please try again.");
+    }
+  };
+
+  const handleDeleteClick = (routineId: Id<"routines">) => {
+    setRoutineToDelete(routineId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleDeleteRoutine = async () => {
+    if (!routineToDelete) return;
+
+    try {
+      await deleteRoutine({ routineId: routineToDelete });
+      toast.success("Routine deleted successfully!");
+      setDeleteDialogOpen(false);
+      setRoutineToDelete(null);
+    } catch (error) {
+      console.error("Failed to delete routine:", error);
+      toast.error("Failed to delete routine. Please try again.");
     }
   };
 
@@ -55,6 +80,22 @@ export default function NewWorkout() {
             }
           }}
         />
+      </ReusableDialog>
+
+      <ReusableDialog
+        open={deleteDialogOpen}
+        onOpenChange={setDeleteDialogOpen}
+        title="Delete Routine"
+        confirmText="Delete"
+        cancelText="Cancel"
+        onConfirm={handleDeleteRoutine}
+        confirmVariant="destructive"
+      >
+        <div className="text-sm">
+          Are you sure you want to delete this routine? This will permanently
+          delete the routine and all exercises in it. This action cannot be
+          undone.
+        </div>
       </ReusableDialog>
 
       <div className="flex items-center justify-between">
@@ -92,7 +133,11 @@ export default function NewWorkout() {
                 >
                   <ArrowRightIcon className="size-4" />
                 </Button>
-                <Button variant={"link"} size={"icon"}>
+                <Button
+                  variant={"link"}
+                  size={"icon"}
+                  onClick={() => handleDeleteClick(routine._id)}
+                >
                   <TrashIcon className="size-4 text-destructive" />
                 </Button>
               </div>
