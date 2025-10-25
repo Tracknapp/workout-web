@@ -21,7 +21,7 @@ export default function DashboardLayout({
               <SidebarTrigger className="sm:hidden" />
             </div>
           </header>
-          {children}
+          <main className="flex-1 p-4">{children}</main>
         </SidebarInset>
       </SidebarProvider>
     </div>
