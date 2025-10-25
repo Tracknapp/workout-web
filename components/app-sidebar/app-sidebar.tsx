@@ -1,13 +1,7 @@
 "use client";
 
 import { Sidebar, SidebarContent } from "@/components/ui/sidebar";
-import {
-  Clock10Icon,
-  Dumbbell,
-  History,
-  LayoutDashboardIcon,
-  Settings,
-} from "lucide-react";
+import { Dumbbell, History, LayoutDashboardIcon, Settings } from "lucide-react";
 import { NavFooter } from "./nav-footer";
 import { SidebarData } from "./types";
 import { NavHeader } from "./nav-header";
@@ -23,10 +17,10 @@ const data: SidebarData = {
       isActive: true,
     },
     {
-      id: "start-workout",
-      title: "Start Workout",
-      url: "/new-workout",
-      icon: Clock10Icon,
+      id: "workout-plans",
+      title: "Workout Plans",
+      url: "/workout",
+      icon: Dumbbell,
     },
     {
       id: "workouts-history",
