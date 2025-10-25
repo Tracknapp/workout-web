@@ -1,6 +1,7 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 import { getCurrentUserId } from "./user";
+import { Id } from "./_generated/dataModel";
 
 // Create a new routine
 export const createRoutine = mutation({
@@ -11,7 +12,7 @@ export const createRoutine = mutation({
     const userId = await getCurrentUserId(ctx);
     const routineId = await ctx.db.insert("routines", {
       name: args.name,
-      userId,
+      userId: userId as Id<"users">,
     });
 
     return routineId;
@@ -129,7 +130,7 @@ export const getUserRoutines = query({
       const userId = await getCurrentUserId(ctx);
       const routines = await ctx.db
         .query("routines")
-        .withIndex("byUserId", (q) => q.eq("userId", userId))
+        .withIndex("byUserId", (q) => q.eq("userId", userId as Id<"users">))
         .collect();
 
       return routines;
