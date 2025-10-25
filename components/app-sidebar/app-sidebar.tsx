@@ -14,7 +14,6 @@ const data: SidebarData = {
       title: "Dashboard",
       url: "/dashboard",
       icon: LayoutDashboardIcon,
-      isActive: true,
     },
     {
       id: "workout-plans",
