@@ -37,18 +37,51 @@ export const getAllMuscles = query({
   },
 });
 
-// Get filtered exercises based on equipment, muscles, and body parts
+// Get filtered exercises based on equipment, muscles, and body parts with pagination
 export const getFilteredExercises = query({
   args: {
     equipments: v.optional(v.array(v.string())),
     muscles: v.optional(v.array(v.string())),
     bodyParts: v.optional(v.array(v.string())),
+    limit: v.optional(v.number()),
+    offset: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
-    // Fetch all exercises
-    let exercises = await ctx.db.query("exercises").collect();
+    const limit = args.limit ?? 20;
+    const offset = args.offset ?? 0;
 
-    // Filter by equipments if provided
+    const hasFilters =
+      (args.equipments && args.equipments.length > 0) ||
+      (args.muscles && args.muscles.length > 0) ||
+      (args.bodyParts && args.bodyParts.length > 0);
+
+    // If no filters, we can optimize with take()
+    if (!hasFilters) {
+      const exercises = await ctx.db
+        .query("exercises")
+        .order("desc")
+        .take(offset + limit + 1); // Take one extra to check if there's more
+
+      const hasMore = exercises.length > offset + limit;
+      const paginatedExercises = exercises.slice(offset, offset + limit);
+
+      return {
+        exercises: paginatedExercises,
+        total: offset + paginatedExercises.length,
+        isDone: !hasMore,
+      };
+    }
+
+    // With filters, we need to fetch more to account for filtering
+    // Fetch up to 2000 exercises (should cover most use cases)
+    const allExercises = await ctx.db
+      .query("exercises")
+      .order("desc")
+      .take(2000);
+
+    let exercises = allExercises;
+
+    // Apply filters
     if (args.equipments && args.equipments.length > 0) {
       exercises = exercises.filter((exercise) =>
         args.equipments!.some((equipment) =>
@@ -57,7 +90,6 @@ export const getFilteredExercises = query({
       );
     }
 
-    // Filter by muscles if provided (check both targetMuscles and secondaryMuscles)
     if (args.muscles && args.muscles.length > 0) {
       exercises = exercises.filter((exercise) =>
         args.muscles!.some(
@@ -68,7 +100,6 @@ export const getFilteredExercises = query({
       );
     }
 
-    // Filter by body parts if provided
     if (args.bodyParts && args.bodyParts.length > 0) {
       exercises = exercises.filter((exercise) =>
         args.bodyParts!.some((bodyPart) =>
@@ -77,6 +108,16 @@ export const getFilteredExercises = query({
       );
     }
 
-    return exercises;
+    // Get total count
+    const total = exercises.length;
+
+    // Apply pagination
+    const paginatedExercises = exercises.slice(offset, offset + limit);
+
+    return {
+      exercises: paginatedExercises,
+      total,
+      isDone: offset + limit >= total,
+    };
   },
 });
