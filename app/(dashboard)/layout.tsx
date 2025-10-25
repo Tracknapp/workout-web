@@ -4,6 +4,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import { Toaster } from "@/components/ui/sonner";
 import { ReactNode } from "react";
 
 export default function DashboardLayout({
@@ -21,9 +22,10 @@ export default function DashboardLayout({
               <SidebarTrigger className="sm:hidden" />
             </div>
           </header>
-          <main className="flex-1 p-4">{children}</main>
+          <main className="flex-1 px-4 pb-4">{children}</main>
         </SidebarInset>
       </SidebarProvider>
+      <Toaster />
     </div>
   );
 }
