@@ -1,15 +1,18 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ReusableDialog } from "@/components/reusable-dialog";
-import { PlusCircle } from "lucide-react";
+import { ArrowRightIcon, PlusCircle, TrashIcon } from "lucide-react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function NewWorkout() {
+  const router = useRouter();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [routineName, setRoutineName] = useState("");
 
@@ -32,19 +35,6 @@ export default function NewWorkout() {
 
   return (
     <div>
-      <div className="flex items-center justify-between">
-        <span className="text-2xl font-bold">
-          My routines ({routines?.length ?? 0})
-        </span>
-        <Button
-          className="cursor-pointer rounded-md flex items-center gap-2"
-          variant={"outline"}
-          onClick={() => setDialogOpen(true)}
-        >
-          <PlusCircle /> New Routine
-        </Button>
-      </div>
-
       <ReusableDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
@@ -66,6 +56,50 @@ export default function NewWorkout() {
           }}
         />
       </ReusableDialog>
+
+      <div className="flex items-center justify-between">
+        <span className="text-2xl font-bold">
+          My routines ({routines?.length ?? 0})
+        </span>
+        <Button
+          className="cursor-pointer rounded-md flex items-center gap-2"
+          variant={"outline"}
+          onClick={() => setDialogOpen(true)}
+        >
+          <PlusCircle /> New Routine
+        </Button>
+      </div>
+
+      <ScrollArea className="rounded-md border mt-4 h-[calc(100vh-10rem)]">
+        <div className="p-4">
+          {routines?.map((routine) => (
+            <div
+              key={routine._id}
+              className="flex items-center justify-between p-2 border mt-4 rounded-xl"
+            >
+              <div className="flex flex-col items-baseline ">
+                <span className="text-lg font-bold">{routine.name}</span>
+                <span className="text-sm text-muted-foreground">
+                  4 exercises
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={"link"}
+                  size={"icon"}
+                  onClick={() => router.push(`/workout/${routine._id}`)}
+                >
+                  <ArrowRightIcon className="size-4" />
+                </Button>
+                <Button variant={"link"} size={"icon"}>
+                  <TrashIcon className="size-4 text-destructive" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </ScrollArea>
     </div>
   );
 }
