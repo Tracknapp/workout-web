@@ -1,17 +1,19 @@
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
+import { getCurrentUserId } from "./user";
 
 // Create a new routine
 export const createRoutine = mutation({
   args: {
     name: v.string(),
-    userId: v.id("users"),
   },
   handler: async (ctx, args) => {
+    const userId = await getCurrentUserId(ctx);
     const routineId = await ctx.db.insert("routines", {
       name: args.name,
-      userId: args.userId,
+      userId,
     });
+
     return routineId;
   },
 });
@@ -121,15 +123,19 @@ export const reorderRoutineExercises = mutation({
 
 // Get all routines for a user
 export const getUserRoutines = query({
-  args: {
-    userId: v.id("users"),
-  },
-  handler: async (ctx, args) => {
-    const routines = await ctx.db
-      .query("routines")
-      .withIndex("byUserId", (q) => q.eq("userId", args.userId))
-      .collect();
-    return routines;
+  args: {},
+  handler: async (ctx) => {
+    try {
+      const userId = await getCurrentUserId(ctx);
+      const routines = await ctx.db
+        .query("routines")
+        .withIndex("byUserId", (q) => q.eq("userId", userId))
+        .collect();
+
+      return routines;
+    } catch {
+      return [];
+    }
   },
 });
 
