@@ -43,6 +43,7 @@ export const getFilteredExercises = query({
     equipments: v.optional(v.array(v.string())),
     muscles: v.optional(v.array(v.string())),
     bodyParts: v.optional(v.array(v.string())),
+    search: v.optional(v.string()),
     limit: v.optional(v.number()),
     offset: v.optional(v.number()),
   },
@@ -53,7 +54,8 @@ export const getFilteredExercises = query({
     const hasFilters =
       (args.equipments && args.equipments.length > 0) ||
       (args.muscles && args.muscles.length > 0) ||
-      (args.bodyParts && args.bodyParts.length > 0);
+      (args.bodyParts && args.bodyParts.length > 0) ||
+      (args.search && args.search.trim().length > 0);
 
     // If no filters, we can optimize with take()
     if (!hasFilters) {
@@ -105,6 +107,14 @@ export const getFilteredExercises = query({
         args.bodyParts!.some((bodyPart) =>
           exercise.bodyParts.includes(bodyPart)
         )
+      );
+    }
+
+    // Apply search filter (fuzzy search on exercise name)
+    if (args.search && args.search.trim().length > 0) {
+      const searchLower = args.search.toLowerCase().trim();
+      exercises = exercises.filter((exercise) =>
+        exercise.name.toLowerCase().includes(searchLower)
       );
     }
 

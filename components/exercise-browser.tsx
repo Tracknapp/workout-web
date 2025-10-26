@@ -3,28 +3,57 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
-import { X, Loader2 } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { Loader2, Search, Check, ChevronsUpDown, RotateCcw } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 20;
 
 export function ExerciseBrowser() {
   const [selectedMuscle, setSelectedMuscle] = useState<string>("all");
   const [selectedEquipment, setSelectedEquipment] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [equipmentOpen, setEquipmentOpen] = useState(false);
+  const [muscleOpen, setMuscleOpen] = useState(false);
   const [offset, setOffset] = useState(0);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [allExercises, setAllExercises] = useState<any[]>([]);
   const [isDone, setIsDone] = useState(false);
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const equipmentRef = useRef<HTMLDivElement>(null);
+  const muscleRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        equipmentRef.current &&
+        !equipmentRef.current.contains(event.target as Node)
+      ) {
+        setEquipmentOpen(false);
+      }
+      if (
+        muscleRef.current &&
+        !muscleRef.current.contains(event.target as Node)
+      ) {
+        setMuscleOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   // Fetch all data
   const musclesData = useQuery(api.exercises.getAllMuscles);
@@ -36,8 +65,7 @@ export function ExerciseBrowser() {
     [musclesData]
   );
   const equipments = useMemo(
-    () =>
-      equipmentsData?.slice().sort((a, b) => a.name.localeCompare(b.name)),
+    () => equipmentsData?.slice().sort((a, b) => a.name.localeCompare(b.name)),
     [equipmentsData]
   );
 
@@ -45,6 +73,7 @@ export function ExerciseBrowser() {
   const exercisesData = useQuery(api.exercises.getFilteredExercises, {
     muscles: selectedMuscle !== "all" ? [selectedMuscle] : undefined,
     equipments: selectedEquipment !== "all" ? [selectedEquipment] : undefined,
+    search: searchQuery.trim().length > 0 ? searchQuery : undefined,
     limit: PAGE_SIZE,
     offset: offset,
   });
@@ -77,13 +106,17 @@ export function ExerciseBrowser() {
   const handleClearFilters = () => {
     setSelectedMuscle("all");
     setSelectedEquipment("all");
+    setSearchQuery("");
     setAllExercises([]);
     setOffset(0);
     setIsDone(false);
     setIsLoadingMore(false);
   };
 
-  const hasFilters = selectedMuscle !== "all" || selectedEquipment !== "all";
+  const hasFilters =
+    selectedMuscle !== "all" ||
+    selectedEquipment !== "all" ||
+    searchQuery.trim().length > 0;
 
   // Reset when filters change
   const handleMuscleChange = (value: string) => {
@@ -96,6 +129,14 @@ export function ExerciseBrowser() {
 
   const handleEquipmentChange = (value: string) => {
     setSelectedEquipment(value);
+    setAllExercises([]);
+    setOffset(0);
+    setIsDone(false);
+    setIsLoadingMore(false);
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
     setAllExercises([]);
     setOffset(0);
     setIsDone(false);
@@ -133,64 +174,186 @@ export function ExerciseBrowser() {
     <div className="flex flex-col h-full border-l">
       {/* Header */}
       <div className="p-4 border-b">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">Filters</h2>
+        <h2 className="text-lg font-semibold">Exercise Library</h2>
+      </div>
+
+      {/* Search Bar - Fixed */}
+      <div className="p-4">
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search exercises..."
+              value={searchQuery}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="pl-9"
+            />
+          </div>
           {hasFilters && (
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
               onClick={handleClearFilters}
-              className="h-8 px-2"
+              className="h-10 gap-1.5 shrink-0"
             >
-              <X className="size-4" />
+              <RotateCcw className="size-3.5" />
+              <span className="text-xs">Clear</span>
             </Button>
           )}
         </div>
       </div>
 
-      <ScrollArea className="flex-1">
-        {/* Equipment Dropdown */}
-        <div className="p-4">
-          <label className="text-sm font-semibold mb-2 block">Equipment</label>
-          <Select value={selectedEquipment} onValueChange={handleEquipmentChange}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select equipment" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All</SelectItem>
-              {equipments?.map((equipment) => (
-                <SelectItem key={equipment._id} value={equipment.name}>
-                  <span className="capitalize">{equipment.name}</span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      <Separator />
+
+      {/* Equipment Dropdown - Fixed */}
+      <div className="p-4">
+        <label className="text-sm font-semibold mb-2 block">Equipment</label>
+        <div className="relative" ref={equipmentRef}>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={equipmentOpen}
+            className="w-full justify-between"
+            onClick={() => setEquipmentOpen(!equipmentOpen)}
+          >
+            <span className="capitalize">
+              {selectedEquipment === "all"
+                ? "All"
+                : equipments?.find((e) => e.name === selectedEquipment)?.name}
+            </span>
+            <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
+          </Button>
+          {equipmentOpen && (
+            <div className="absolute z-50 w-full mt-1 bg-popover border rounded-md shadow-md">
+              <Command>
+                <CommandInput placeholder="Search equipment..." />
+                <CommandList>
+                  <CommandEmpty>No equipment found.</CommandEmpty>
+                  <CommandGroup>
+                    <CommandItem
+                      value="all"
+                      onSelect={() => {
+                        handleEquipmentChange("all");
+                        setEquipmentOpen(false);
+                      }}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 size-4",
+                          selectedEquipment === "all"
+                            ? "opacity-100"
+                            : "opacity-0"
+                        )}
+                      />
+                      All
+                    </CommandItem>
+                    {equipments?.map((equipment) => (
+                      <CommandItem
+                        key={equipment._id}
+                        value={equipment.name}
+                        onSelect={() => {
+                          handleEquipmentChange(equipment.name);
+                          setEquipmentOpen(false);
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 size-4",
+                            selectedEquipment === equipment.name
+                              ? "opacity-100"
+                              : "opacity-0"
+                          )}
+                        />
+                        <span className="capitalize">{equipment.name}</span>
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </div>
+          )}
         </div>
+      </div>
 
-        <Separator />
+      <Separator />
 
-        {/* Muscles Dropdown */}
-        <div className="p-4">
-          <label className="text-sm font-semibold mb-2 block">Muscles</label>
-          <Select value={selectedMuscle} onValueChange={handleMuscleChange}>
-            <SelectTrigger className="w-full">
-              <SelectValue placeholder="Select muscle" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All</SelectItem>
-              {muscles?.map((muscle) => (
-                <SelectItem key={muscle._id} value={muscle.name}>
-                  <span className="capitalize">{muscle.name}</span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      {/* Muscles Dropdown - Fixed */}
+      <div className="p-4">
+        <label className="text-sm font-semibold mb-2 block">Muscles</label>
+        <div className="relative" ref={muscleRef}>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={muscleOpen}
+            className="w-full justify-between"
+            onClick={() => setMuscleOpen(!muscleOpen)}
+          >
+            <span className="capitalize">
+              {selectedMuscle === "all"
+                ? "All"
+                : muscles?.find((m) => m.name === selectedMuscle)?.name}
+            </span>
+            <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
+          </Button>
+          {muscleOpen && (
+            <div className="absolute z-50 w-full mt-1 bg-popover border rounded-md shadow-md">
+              <Command>
+                <CommandInput placeholder="Search muscles..." />
+                <CommandList>
+                  <CommandEmpty>No muscle found.</CommandEmpty>
+                  <CommandGroup>
+                    <CommandItem
+                      value="all"
+                      onSelect={() => {
+                        handleMuscleChange("all");
+                        setMuscleOpen(false);
+                      }}
+                    >
+                      <Check
+                        className={cn(
+                          "mr-2 size-4",
+                          selectedMuscle === "all"
+                            ? "opacity-100"
+                            : "opacity-0"
+                        )}
+                      />
+                      All
+                    </CommandItem>
+                    {muscles?.map((muscle) => (
+                      <CommandItem
+                        key={muscle._id}
+                        value={muscle.name}
+                        onSelect={() => {
+                          handleMuscleChange(muscle.name);
+                          setMuscleOpen(false);
+                        }}
+                      >
+                        <Check
+                          className={cn(
+                            "mr-2 size-4",
+                            selectedMuscle === muscle.name
+                              ? "opacity-100"
+                              : "opacity-0"
+                          )}
+                        />
+                        <span className="capitalize">{muscle.name}</span>
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
+              </Command>
+            </div>
+          )}
         </div>
+      </div>
 
-        <Separator />
+      <Separator />
 
-        {/* Exercises Section */}
-        <div className="p-4">
+      {/* Exercises Section - Scrollable */}
+      <div className="flex-1 min-h-0 overflow-hidden">
+        <ScrollArea className="h-full">
+          <div className="p-4">
           <h3 className="text-sm font-semibold mb-3">
             Exercises{" "}
             {allExercises.length > 0 && (
@@ -256,7 +419,8 @@ export function ExerciseBrowser() {
             )}
           </div>
         </div>
-      </ScrollArea>
+        </ScrollArea>
+      </div>
     </div>
   );
 }
