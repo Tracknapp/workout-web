@@ -4,7 +4,7 @@ import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { Dumbbell } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import {
   Tooltip,
   TooltipContent,
@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 
 export function FloatingSessionButton() {
   const router = useRouter();
+  const pathname = usePathname();
   const activeSession = useQuery(api.sessions.getActiveSession);
   const sessionWithExercises = useQuery(
     api.sessions.getSessionWithExercises,
@@ -23,6 +24,12 @@ export function FloatingSessionButton() {
 
   // Don't render if no active session
   if (!activeSession || !sessionWithExercises) {
+    return null;
+  }
+
+  // Don't render on the active session page itself
+  const isOnSessionPage = pathname?.includes("/session");
+  if (isOnSessionPage) {
     return null;
   }
 

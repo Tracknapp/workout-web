@@ -170,7 +170,7 @@ export default function WorkoutSession({
 
   if (isLoading) {
     return (
-      <div className="max-w-4xl mx-auto p-6">
+      <div className="max-w-4xl mx-auto p-4 sm:p-6">
         <div className="text-center py-12">
           <p className="text-muted-foreground">Loading workout...</p>
         </div>
@@ -181,33 +181,34 @@ export default function WorkoutSession({
   // Show conflict UI if user tries to start a new session while one is active
   if (hasConflict && conflictingSession) {
     return (
-      <div className="max-w-4xl mx-auto p-6">
-        <div className="flex items-center gap-4 mb-6">
+      <div className="max-w-4xl mx-auto p-4 sm:p-6">
+        <div className="flex items-center gap-2 sm:gap-4 mb-6">
           <Button variant="ghost" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="size-4" />
           </Button>
-          <h1 className="text-2xl font-bold">Cannot Start Session</h1>
+          <h1 className="text-xl sm:text-2xl font-bold">Cannot Start Session</h1>
         </div>
-        <div className="border rounded-lg p-8 text-center space-y-4">
+        <div className="border rounded-lg p-6 sm:p-8 text-center space-y-4">
           <div className="mx-auto w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center">
             <Dumbbell className="h-8 w-8 text-destructive" />
           </div>
           <div className="space-y-2">
-            <h2 className="text-xl font-semibold">Active Workout in Progress</h2>
-            <p className="text-muted-foreground">
+            <h2 className="text-lg sm:text-xl font-semibold">Active Workout in Progress</h2>
+            <p className="text-sm sm:text-base text-muted-foreground">
               You have an active workout session for{" "}
               <span className="font-semibold">{conflictingSession.routineName}</span>.
             </p>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground">
               Please complete or abandon your current session before starting a new one.
             </p>
           </div>
-          <div className="flex gap-3 justify-center pt-4">
-            <Button variant="outline" onClick={() => router.push("/workout")}>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center pt-4">
+            <Button variant="outline" onClick={() => router.push("/workout")} className="w-full sm:w-auto">
               Back to Routines
             </Button>
             <Button
               onClick={() => router.push(`/workout/${conflictingSession.routineId}/session`)}
+              className="w-full sm:w-auto"
             >
               Go to Active Session
             </Button>
@@ -218,16 +219,17 @@ export default function WorkoutSession({
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-4xl mx-auto p-4 sm:p-6 pb-24 sm:pb-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div className="flex items-center gap-2 sm:gap-4">
           <Button variant="ghost" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="size-4" />
           </Button>
-          <h1 className="text-2xl font-bold">{routineName}</h1>
+          <h1 className="text-xl sm:text-2xl font-bold truncate">{routineName}</h1>
         </div>
-        <div className="flex gap-2">
+        {/* Desktop Actions */}
+        <div className="hidden sm:flex gap-2">
           <Button onClick={() => setIsDrawerOpen(true)} variant="outline">
             <Plus className="size-4 mr-2" />
             Add Exercise
@@ -243,6 +245,44 @@ export default function WorkoutSession({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => setAbandonDialogOpen(true)}
+                className="text-destructive focus:text-destructive"
+              >
+                <XCircle className="size-4 mr-2" />
+                Abandon Workout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+
+      {/* Mobile Floating Action Bar */}
+      <div className="fixed bottom-0 left-0 right-0 sm:hidden bg-background border-t p-4 z-40 shadow-lg">
+        <div className="flex gap-2">
+          <Button
+            onClick={() => setIsDrawerOpen(true)}
+            variant="outline"
+            className="flex-1"
+          >
+            <Plus className="size-4 mr-2" />
+            Add Exercise
+          </Button>
+          <Button
+            onClick={handleCompleteWorkout}
+            variant="default"
+            className="flex-1"
+          >
+            <CheckCircle className="size-4 mr-2" />
+            Complete
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon" className="shrink-0">
+                <MoreVertical className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="z-50">
               <DropdownMenuItem
                 onClick={() => setAbandonDialogOpen(true)}
                 className="text-destructive focus:text-destructive"
