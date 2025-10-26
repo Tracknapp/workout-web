@@ -2,9 +2,11 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Trash2, TrashIcon, Check } from "lucide-react";
+import { Plus, Trash2, TrashIcon, Check, GripVertical } from "lucide-react";
 import type { ExerciseWithSets } from "./exercise-browser/types";
 import { requiresWeight } from "./exercise-browser/utils";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 
 interface RoutineExerciseCardProps {
   exercise: ExerciseWithSets;
@@ -23,14 +25,43 @@ export function RoutineExerciseCard({
   onUpdateSet,
   onToggleComplete,
 }: RoutineExerciseCardProps) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: exercise._id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
   const needsWeight = requiresWeight(exercise);
 
   return (
-    <div className="border rounded-lg bg-card overflow-hidden">
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`border rounded-lg bg-card overflow-hidden transition-shadow ${
+        isDragging ? "shadow-lg opacity-50" : ""
+      }`}
+    >
       {/* Exercise Header */}
       <div className="flex items-center gap-4 p-4 bg-muted/50">
-        {/* Circular GIF */}
-        <div className="shrink-0 w-16 h-16 rounded-full overflow-hidden bg-muted border-2 border-border">
+        {/* Drag Handle */}
+        <div
+          {...attributes}
+          {...listeners}
+          className="cursor-grab active:cursor-grabbing touch-none"
+        >
+          <GripVertical className="size-5 text-muted-foreground" />
+        </div>
+
+          {/* Circular GIF */}
+          <div className="shrink-0 w-16 h-16 rounded-full overflow-hidden bg-muted border-2 border-border">
           <img
             src={exercise.gifUrl}
             alt={exercise.name}

@@ -5,12 +5,6 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { ExerciseBrowser } from "@/components/exercise-browser";
 import { RoutineExerciseCard } from "@/components/routine-exercise-card";
-import type {
-  Exercise,
-  ExerciseWithSets,
-  ExerciseSet,
-} from "@/components/exercise-browser/types";
-import { requiresWeight } from "@/components/exercise-browser/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -21,6 +15,11 @@ import {
 } from "@/components/ui/sheet";
 import { Plus, Save } from "lucide-react";
 import { Id } from "@/convex/_generated/dataModel";
+import { DndContext, closestCenter } from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
+import { useRoutineExercises } from "@/hooks/useRoutineExercises";
+import { useDragAndDrop } from "@/hooks/useDragAndDrop";
+import type { Exercise } from "@/components/exercise-browser/types";
 
 export default function RoutineDetail({
   params,
@@ -34,10 +33,21 @@ export default function RoutineDetail({
   const updateRoutine = useMutation(api.routines.updateRoutine);
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [selectedExercises, setSelectedExercises] = useState<
-    ExerciseWithSets[]
-  >([]);
   const [routineName, setRoutineName] = useState("");
+
+  // Custom hooks for exercise management and drag-and-drop
+  const {
+    selectedExercises,
+    setSelectedExercises,
+    handleAddExercises: addExercises,
+    handleAddSet,
+    handleRemoveSet,
+    handleUpdateSet,
+    handleToggleComplete,
+    handleRemoveExercise,
+  } = useRoutineExercises();
+
+  const { sensors, handleDragEnd } = useDragAndDrop(setSelectedExercises);
 
   // Update local state when routine data loads
   useEffect(() => {
@@ -47,87 +57,8 @@ export default function RoutineDetail({
   }, [routine]);
 
   const handleAddExercises = (exercises: Exercise[]) => {
-    setSelectedExercises((prev) => {
-      // Add new exercises with empty sets array, avoiding duplicates
-      const existingIds = new Set(prev.map((ex) => ex._id));
-      const newExercises: ExerciseWithSets[] = exercises
-        .filter((ex) => !existingIds.has(ex._id))
-        .map((ex) => ({
-          ...ex,
-          sets: [], // Initialize with empty sets
-        }));
-      return [...prev, ...newExercises];
-    });
+    addExercises(exercises);
     setIsDrawerOpen(false); // Close drawer after adding
-  };
-
-  const handleAddSet = (exerciseId: string) => {
-    setSelectedExercises((prev) =>
-      prev.map((ex) => {
-        if (ex._id === exerciseId) {
-          const newSet: ExerciseSet = {
-            id: `${exerciseId}-${Date.now()}`, // Generate unique ID
-            setNumber: ex.sets.length + 1,
-            reps: 0,
-            weight: requiresWeight(ex) ? 0 : undefined,
-            completed: false,
-          };
-          return { ...ex, sets: [...ex.sets, newSet] };
-        }
-        return ex;
-      })
-    );
-  };
-
-  const handleRemoveSet = (exerciseId: string, setId: string) => {
-    setSelectedExercises((prev) =>
-      prev.map((ex) => {
-        if (ex._id === exerciseId) {
-          return {
-            ...ex,
-            sets: ex.sets.filter((set) => set.id !== setId),
-          };
-        }
-        return ex;
-      })
-    );
-  };
-
-  const handleUpdateSet = (
-    exerciseId: string,
-    setId: string,
-    field: "reps" | "weight",
-    value: number
-  ) => {
-    setSelectedExercises((prev) =>
-      prev.map((ex) => {
-        if (ex._id === exerciseId) {
-          return {
-            ...ex,
-            sets: ex.sets.map((set) =>
-              set.id === setId ? { ...set, [field]: value } : set
-            ),
-          };
-        }
-        return ex;
-      })
-    );
-  };
-
-  const handleToggleComplete = (exerciseId: string, setId: string) => {
-    setSelectedExercises((prev) =>
-      prev.map((ex) => {
-        if (ex._id === exerciseId) {
-          return {
-            ...ex,
-            sets: ex.sets.map((set) =>
-              set.id === setId ? { ...set, completed: !set.completed } : set
-            ),
-          };
-        }
-        return ex;
-      })
-    );
   };
 
   const handleSaveRoutine = async () => {
@@ -191,27 +122,34 @@ export default function RoutineDetail({
           <h2 className="text-lg font-semibold">
             Selected Exercises ({selectedExercises.length})
           </h2>
-          <div className="grid gap-4">
-            {selectedExercises.map((exercise) => (
-              <RoutineExerciseCard
-                key={exercise._id}
-                exercise={exercise}
-                onRemoveExercise={() =>
-                  setSelectedExercises((prev) =>
-                    prev.filter((ex) => ex._id !== exercise._id)
-                  )
-                }
-                onAddSet={() => handleAddSet(exercise._id)}
-                onRemoveSet={(setId) => handleRemoveSet(exercise._id, setId)}
-                onUpdateSet={(setId, field, value) =>
-                  handleUpdateSet(exercise._id, setId, field, value)
-                }
-                onToggleComplete={(setId) =>
-                  handleToggleComplete(exercise._id, setId)
-                }
-              />
-            ))}
-          </div>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={selectedExercises.map((ex) => ex._id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <div className="grid gap-4">
+                {selectedExercises.map((exercise) => (
+                  <RoutineExerciseCard
+                    key={exercise._id}
+                    exercise={exercise}
+                    onRemoveExercise={() => handleRemoveExercise(exercise._id)}
+                    onAddSet={() => handleAddSet(exercise._id)}
+                    onRemoveSet={(setId) => handleRemoveSet(exercise._id, setId)}
+                    onUpdateSet={(setId, field, value) =>
+                      handleUpdateSet(exercise._id, setId, field, value)
+                    }
+                    onToggleComplete={(setId) =>
+                      handleToggleComplete(exercise._id, setId)
+                    }
+                  />
+                ))}
+              </div>
+            </SortableContext>
+          </DndContext>
         </div>
       ) : (
         <div className="text-center py-12 border-2 border-dashed rounded-lg">
