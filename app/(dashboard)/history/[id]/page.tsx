@@ -44,12 +44,12 @@ export default function WorkoutHistoryDetail({
   };
 
   const totalSets = session.exercises.reduce(
-    (acc: number, exercise: any) => acc + exercise.sets.length,
+    (acc, exercise) => acc + exercise.sets.length,
     0
   );
   const completedSets = session.exercises.reduce(
-    (acc: number, exercise: any) =>
-      acc + exercise.sets.filter((set: any) => set.completed).length,
+    (acc, exercise) =>
+      acc + exercise.sets.filter((set) => set.completed).length,
     0
   );
 
@@ -106,7 +106,7 @@ export default function WorkoutHistoryDetail({
             Exercises ({session.exercises.length})
           </h2>
           <div className="grid gap-4">
-            {session.exercises.map((exercise: any) => (
+            {session.exercises.map((exercise) => (
               <div
                 key={exercise._id}
                 className="bg-card border rounded-lg p-4"
@@ -156,7 +156,7 @@ export default function WorkoutHistoryDetail({
                           </tr>
                         </thead>
                         <tbody>
-                          {exercise.sets.map((set: any) => (
+                          {exercise.sets.map((set) => (
                             <tr key={set._id} className="border-b last:border-0">
                               <td className="py-2 px-2">{set.setNumber}</td>
                               <td className="py-2 px-2">{set.reps}</td>

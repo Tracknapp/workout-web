@@ -1,4 +1,4 @@
-import { DndContext, closestCenter } from "@dnd-kit/core";
+import { DndContext, closestCenter, type SensorDescriptor, type SensorOptions } from "@dnd-kit/core";
 import {
   SortableContext,
   verticalListSortingStrategy,
@@ -9,7 +9,7 @@ import type { DragEndEvent } from "@dnd-kit/core";
 
 interface SessionExercisesListProps {
   exercises: ExerciseWithSets[];
-  sensors: any;
+  sensors: SensorDescriptor<SensorOptions>[];
   onDragEnd: (event: DragEndEvent) => void;
   onRemoveExercise: (exerciseId: string) => void;
   onAddSet: (exerciseId: string) => void;

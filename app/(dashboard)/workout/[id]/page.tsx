@@ -62,7 +62,7 @@ export default function RoutineDetail({
 
       // Load exercises with sets from backend
       if (routine.exercises && routine.exercises.length > 0) {
-        const exercisesWithSets: ExerciseWithSets[] = routine.exercises.map((re: any) => {
+        const exercisesWithSets: ExerciseWithSets[] = routine.exercises.map((re) => {
           if (!re.exercise) return null;
 
           return {
@@ -75,7 +75,7 @@ export default function RoutineDetail({
             equipments: re.exercise.equipments,
             bodyParts: re.exercise.bodyParts,
             instructions: re.exercise.instructions,
-            sets: re.sets.map((set: any) => ({
+            sets: re.sets.map((set) => ({
               id: set._id,
               setNumber: set.setNumber,
               reps: set.reps,
@@ -210,7 +210,7 @@ export default function RoutineDetail({
       ) : (
         <div className="text-center py-12 border-2 border-dashed rounded-lg">
           <p className="text-muted-foreground">
-            No exercises added yet. Click "Add Exercise" to get started.
+            No exercises added yet. Click &quot;Add Exercise&quot; to get started.
           </p>
         </div>
       )}

@@ -92,7 +92,7 @@ export function useWorkoutSession({
   useEffect(() => {
     if (session && sessionId) {
       const exercisesWithSets: ExerciseWithSets[] = session.exercises
-        .map((se: any) => {
+        .map((se) => {
           return {
             _id: se._id,
             exerciseId: se.exerciseId,
@@ -103,7 +103,7 @@ export function useWorkoutSession({
             equipments: se.equipments,
             bodyParts: [], // Not stored in session
             instructions: [], // Not stored in session
-            sets: se.sets.map((set: any) => ({
+            sets: se.sets.map((set) => ({
               id: set._id, // Session set ID
               setNumber: set.setNumber,
               reps: set.reps,
@@ -119,7 +119,7 @@ export function useWorkoutSession({
       // Store original exercises from the routine for comparison
       if (routine?.exercises && routine.exercises.length > 0) {
         const routineExercises: ExerciseWithSets[] = routine.exercises
-          .map((re: any) => {
+          .map((re) => {
             if (!re.exercise) return null;
             return {
               _id: re.exercise._id,
@@ -131,7 +131,7 @@ export function useWorkoutSession({
               equipments: re.exercise.equipments,
               bodyParts: re.exercise.bodyParts,
               instructions: re.exercise.instructions,
-              sets: re.sets.map((set: any) => ({
+              sets: re.sets.map((set) => ({
                 id: set._id,
                 setNumber: set.setNumber,
                 reps: set.reps,

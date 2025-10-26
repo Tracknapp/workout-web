@@ -146,7 +146,7 @@ export default function WorkoutSession({
     try {
       await completeSessionFromHook();
       router.push("/workout");
-    } catch (error) {
+    } catch {
       // Error already handled in hook
     }
   };

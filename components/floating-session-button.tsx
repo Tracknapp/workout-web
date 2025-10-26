@@ -35,12 +35,12 @@ export function FloatingSessionButton() {
 
   // Calculate progress
   const totalSets = sessionWithExercises.exercises.reduce(
-    (acc: number, exercise: any) => acc + exercise.sets.length,
+    (acc, exercise) => acc + exercise.sets.length,
     0
   );
   const completedSets = sessionWithExercises.exercises.reduce(
-    (acc: number, exercise: any) =>
-      acc + exercise.sets.filter((set: any) => set.completed).length,
+    (acc, exercise) =>
+      acc + exercise.sets.filter((set) => set.completed).length,
     0
   );
   const progressPercentage = totalSets > 0 ? Math.round((completedSets / totalSets) * 100) : 0;

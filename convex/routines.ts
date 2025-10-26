@@ -95,7 +95,7 @@ export const updateRoutineExercise = mutation({
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    const updates: any = {};
+    const updates: { order?: number; notes?: string } = {};
     if (args.order !== undefined) updates.order = args.order;
     if (args.notes !== undefined) updates.notes = args.notes;
 
