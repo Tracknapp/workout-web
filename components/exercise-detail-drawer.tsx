@@ -30,12 +30,12 @@ export function ExerciseDetailDrawer({
 
         <div className="mt-6 space-y-6">
           {/* Exercise GIF */}
-          <div className="w-full rounded-lg overflow-hidden bg-muted border-2 border-border flex items-center justify-center">
+          <div className="w-full flex items-center justify-center bg-muted rounded-lg border-2 border-border p-4">
             <img
               src={exercise.gifUrl}
               alt={exercise.name}
-              className="w-full h-auto"
-              style={{ imageRendering: 'crisp-edges' }}
+              className="max-w-sm w-auto h-auto"
+              style={{ imageRendering: 'auto' }}
             />
           </div>
 

@@ -128,8 +128,8 @@ export function RoutineExerciseCard({
                       : "bg-muted/50"
                   }`}
                 >
-                  <span className="text-sm font-medium w-12">
-                    Set {index + 1}
+                  <span className="text-sm font-medium w-8 h-8 border flex items-center justify-center">
+                    {index + 1}
                   </span>
 
                   {/* Reps Input */}
