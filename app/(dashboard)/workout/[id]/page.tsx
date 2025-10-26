@@ -21,6 +21,7 @@ import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable"
 import { useRoutineExercises } from "@/hooks/useRoutineExercises";
 import { useDragAndDrop } from "@/hooks/useDragAndDrop";
 import type { Exercise, ExerciseWithSets } from "@/components/exercise-browser/types";
+import { toast } from "sonner";
 
 export default function RoutineDetail({
   params,
@@ -125,10 +126,10 @@ export default function RoutineDetail({
         exercises: exercisesToSave,
       });
 
-      alert(`Routine "${routineName}" saved successfully!`);
+      toast.success(`Routine "${routineName}" saved successfully!`);
     } catch (error) {
       console.error("Error saving routine:", error);
-      alert("Failed to save routine");
+      toast.error("Failed to save routine. Please try again.");
     }
   };
 
