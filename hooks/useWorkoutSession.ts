@@ -15,6 +15,8 @@ interface UseWorkoutSessionReturn {
   exercises: ExerciseWithSets[];
   originalExercises: ExerciseWithSets[];
   isLoading: boolean;
+  hasConflict: boolean;
+  conflictingSession: { routineName: string; routineId: Id<"routines"> } | null;
   completeSession: () => Promise<void>;
   hasChanges: () => boolean;
 }
@@ -27,6 +29,11 @@ export function useWorkoutSession({
   const [originalExercises, setOriginalExercises] = useState<ExerciseWithSets[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const [isStartingSession, setIsStartingSession] = useState(false);
+  const [hasConflict, setHasConflict] = useState(false);
+  const [conflictingSession, setConflictingSession] = useState<{
+    routineName: string;
+    routineId: Id<"routines">;
+  } | null>(null);
 
   const routine = useQuery(api.routines.getRoutineWithExercises, { routineId });
   const activeSession = useQuery(api.sessions.getActiveSession);
@@ -44,13 +51,26 @@ export function useWorkoutSession({
       const initSession = async () => {
         setIsStartingSession(true);
         try {
-          // Check if there's an active session for this routine
-          if (activeSession && activeSession.routineId === routineId) {
-            // Restore existing session
-            setSessionId(activeSession._id);
-            toast.info("Resuming active workout session");
+          // Check if there's an active session
+          if (activeSession) {
+            // If active session is for this routine, restore it
+            if (activeSession.routineId === routineId) {
+              setSessionId(activeSession._id);
+            } else {
+              // Active session exists for a different routine - prevent starting new session
+              setHasConflict(true);
+              if (activeSession.routineId) {
+                setConflictingSession({
+                  routineName: activeSession.routineName,
+                  routineId: activeSession.routineId,
+                });
+              }
+              setIsLoaded(true);
+              setIsStartingSession(false);
+              return;
+            }
           } else {
-            // Start new session
+            // No active session - start new session
             const newSessionId = await startSessionMutation({ routineId });
             setSessionId(newSessionId);
             toast.success("Workout session started!");
@@ -179,6 +199,8 @@ export function useWorkoutSession({
     exercises,
     originalExercises,
     isLoading: !isLoaded || isStartingSession,
+    hasConflict,
+    conflictingSession,
     completeSession,
     hasChanges,
   };

@@ -5,6 +5,7 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { Toaster } from "@/components/ui/sonner";
+import { FloatingSessionButton } from "@/components/floating-session-button";
 import { ReactNode } from "react";
 
 export default function DashboardLayout({
@@ -26,6 +27,7 @@ export default function DashboardLayout({
         </SidebarInset>
       </SidebarProvider>
       <Toaster />
+      <FloatingSessionButton />
     </div>
   );
 }

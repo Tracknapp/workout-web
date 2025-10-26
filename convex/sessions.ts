@@ -128,16 +128,39 @@ export const completeSession = mutation({
   },
 });
 
-// Abandon a workout session
+// Abandon a workout session - deletes the session and all related data
 export const abandonSession = mutation({
   args: {
     sessionId: v.id("workoutSessions"),
   },
   handler: async (ctx, args) => {
-    await ctx.db.patch(args.sessionId, {
-      status: "abandoned",
-      endTime: Date.now(),
-    });
+    // Get all session exercises for this session
+    const sessionExercises = await ctx.db
+      .query("sessionExercises")
+      .withIndex("bySessionId", (q) => q.eq("sessionId", args.sessionId))
+      .collect();
+
+    // Delete all sets for each session exercise
+    for (const sessionExercise of sessionExercises) {
+      const sets = await ctx.db
+        .query("sessionSets")
+        .withIndex("bySessionExerciseId", (q) =>
+          q.eq("sessionExerciseId", sessionExercise._id)
+        )
+        .collect();
+
+      // Delete each set
+      for (const set of sets) {
+        await ctx.db.delete(set._id);
+      }
+
+      // Delete the session exercise
+      await ctx.db.delete(sessionExercise._id);
+    }
+
+    // Delete the workout session itself
+    await ctx.db.delete(args.sessionId);
+
     return { success: true };
   },
 });

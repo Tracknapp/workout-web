@@ -14,7 +14,13 @@ import {
   SheetTitle,
 } from "@/components/ui/sheet";
 import { ReusableDialog } from "@/components/reusable-dialog";
-import { ArrowLeft, Plus, CheckCircle } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ArrowLeft, Plus, CheckCircle, Dumbbell, MoreVertical, XCircle } from "lucide-react";
 import { Id } from "@/convex/_generated/dataModel";
 import { useRouter } from "next/navigation";
 import { useRoutineExercises } from "@/hooks/useRoutineExercises";
@@ -41,14 +47,19 @@ export default function WorkoutSession({
   const [isDetailDrawerOpen, setIsDetailDrawerOpen] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
+  const [abandonDialogOpen, setAbandonDialogOpen] = useState(false);
 
   const saveRoutineExercises = useMutation(api.routines.saveRoutineExercises);
+  const abandonSessionMutation = useMutation(api.sessions.abandonSession);
 
   // Custom hooks for session and exercise management
   const {
+    sessionId,
     routineName,
     exercises,
     isLoading,
+    hasConflict,
+    conflictingSession,
     completeSession: completeSessionFromHook,
     hasChanges,
   } = useWorkoutSession({ routineId });
@@ -140,11 +151,67 @@ export default function WorkoutSession({
     }
   };
 
+  const handleAbandonSession = async () => {
+    if (!sessionId) {
+      toast.error("No active session found");
+      return;
+    }
+
+    try {
+      await abandonSessionMutation({ sessionId });
+      toast.success("Workout session deleted");
+      setAbandonDialogOpen(false);
+      router.push("/workout");
+    } catch (error) {
+      console.error("Error abandoning session:", error);
+      toast.error("Failed to delete workout session");
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="max-w-4xl mx-auto p-6">
         <div className="text-center py-12">
           <p className="text-muted-foreground">Loading workout...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show conflict UI if user tries to start a new session while one is active
+  if (hasConflict && conflictingSession) {
+    return (
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="flex items-center gap-4 mb-6">
+          <Button variant="ghost" size="icon" onClick={() => router.back()}>
+            <ArrowLeft className="size-4" />
+          </Button>
+          <h1 className="text-2xl font-bold">Cannot Start Session</h1>
+        </div>
+        <div className="border rounded-lg p-8 text-center space-y-4">
+          <div className="mx-auto w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center">
+            <Dumbbell className="h-8 w-8 text-destructive" />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-xl font-semibold">Active Workout in Progress</h2>
+            <p className="text-muted-foreground">
+              You have an active workout session for{" "}
+              <span className="font-semibold">{conflictingSession.routineName}</span>.
+            </p>
+            <p className="text-sm text-muted-foreground">
+              Please complete or abandon your current session before starting a new one.
+            </p>
+          </div>
+          <div className="flex gap-3 justify-center pt-4">
+            <Button variant="outline" onClick={() => router.push("/workout")}>
+              Back to Routines
+            </Button>
+            <Button
+              onClick={() => router.push(`/workout/${conflictingSession.routineId}/session`)}
+            >
+              Go to Active Session
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -169,6 +236,22 @@ export default function WorkoutSession({
             <CheckCircle className="size-4 mr-2" />
             Complete Workout
           </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon">
+                <MoreVertical className="size-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => setAbandonDialogOpen(true)}
+                className="text-destructive focus:text-destructive"
+              >
+                <XCircle className="size-4 mr-2" />
+                Abandon Workout
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
 
@@ -220,6 +303,21 @@ export default function WorkoutSession({
         <div className="text-sm">
           You made changes to the exercises or sets. Would you like to update
           the original routine with these changes?
+        </div>
+      </ReusableDialog>
+
+      {/* Abandon Session Dialog */}
+      <ReusableDialog
+        open={abandonDialogOpen}
+        onOpenChange={setAbandonDialogOpen}
+        title="Abandon Workout?"
+        confirmText="Abandon Workout"
+        cancelText="Cancel"
+        onConfirm={handleAbandonSession}
+        onCancel={() => setAbandonDialogOpen(false)}
+      >
+        <div className="text-sm">
+          Are you sure you want to abandon this workout session? All progress will be permanently deleted.
         </div>
       </ReusableDialog>
     </div>
