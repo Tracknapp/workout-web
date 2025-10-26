@@ -214,7 +214,7 @@ export const saveRoutineExercises = mutation({
   },
 });
 
-// Get all routines for a user
+// Get all routines for a user with exercise count
 export const getUserRoutines = query({
   args: {},
   handler: async (ctx) => {
@@ -225,7 +225,22 @@ export const getUserRoutines = query({
         .withIndex("byUserId", (q) => q.eq("userId", userId as Id<"users">))
         .collect();
 
-      return routines;
+      // Add exercise count to each routine
+      const routinesWithCount = await Promise.all(
+        routines.map(async (routine) => {
+          const exerciseCount = await ctx.db
+            .query("routineExercises")
+            .withIndex("byRoutineId", (q) => q.eq("routineId", routine._id))
+            .collect();
+
+          return {
+            ...routine,
+            exerciseCount: exerciseCount.length,
+          };
+        })
+      );
+
+      return routinesWithCount;
     } catch {
       return [];
     }

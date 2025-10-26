@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ReusableDialog } from "@/components/reusable-dialog";
-import { ArrowRightIcon, PlusCircle, TrashIcon } from "lucide-react";
+import { PencilIcon, Play, PlusCircle, TrashIcon } from "lucide-react";
 import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { toast } from "sonner";
@@ -121,22 +121,32 @@ export default function NewWorkout() {
               <div className="flex flex-col items-baseline ">
                 <span className="text-lg font-bold">{routine.name}</span>
                 <span className="text-sm text-muted-foreground">
-                  4 exercises
+                  {routine.exerciseCount} {routine.exerciseCount === 1 ? 'exercise' : 'exercises'}
                 </span>
               </div>
 
               <div className="flex items-center gap-2">
                 <Button
-                  variant={"link"}
+                  variant={"ghost"}
                   size={"icon"}
-                  onClick={() => router.push(`/workout/${routine._id}`)}
+                  onClick={() => router.push(`/workout/${routine._id}/start`)}
+                  title="Start workout"
                 >
-                  <ArrowRightIcon className="size-4" />
+                  <Play className="size-4" />
                 </Button>
                 <Button
-                  variant={"link"}
+                  variant={"ghost"}
+                  size={"icon"}
+                  onClick={() => router.push(`/workout/${routine._id}`)}
+                  title="Edit routine"
+                >
+                  <PencilIcon className="size-4" />
+                </Button>
+                <Button
+                  variant={"ghost"}
                   size={"icon"}
                   onClick={() => handleDeleteClick(routine._id)}
+                  title="Delete routine"
                 >
                   <TrashIcon className="size-4 text-destructive" />
                 </Button>
