@@ -45,6 +45,13 @@ export const RoutineExercise = {
   notes: v.optional(v.string()),
 };
 
+export const RoutineExerciseSet = {
+  routineExerciseId: v.id("routineExercises"),
+  setNumber: v.number(),
+  reps: v.number(),
+  weight: v.optional(v.number()), // Optional, only for weight-based exercises
+};
+
 export default defineSchema({
   users: defineTable(User)
     .index("byClerkId", ["clerkId"])
@@ -63,4 +70,6 @@ export default defineSchema({
   routineExercises: defineTable(RoutineExercise)
     .index("byRoutineId", ["routineId"])
     .index("byExerciseId", ["exerciseId"]),
+  routineExerciseSets: defineTable(RoutineExerciseSet)
+    .index("byRoutineExerciseId", ["routineExerciseId"]),
 });

@@ -30,13 +30,15 @@ export default function RoutineDetail({
   const { id } = use(params);
   const routineId = id as Id<"routines">;
 
-  const routine = useQuery(api.routines.getRoutine, { routineId });
+  const routine = useQuery(api.routines.getRoutineWithExercises, { routineId });
   const updateRoutine = useMutation(api.routines.updateRoutine);
+  const saveRoutineExercises = useMutation(api.routines.saveRoutineExercises);
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [routineName, setRoutineName] = useState("");
   const [selectedExerciseForDetails, setSelectedExerciseForDetails] = useState<ExerciseWithSets | null>(null);
   const [isDetailDrawerOpen, setIsDetailDrawerOpen] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
 
   // Custom hooks for exercise management and drag-and-drop
   const {
@@ -54,10 +56,40 @@ export default function RoutineDetail({
 
   // Update local state when routine data loads
   useEffect(() => {
-    if (routine) {
+    if (routine && !isLoaded) {
       setRoutineName(routine.name);
+
+      // Load exercises with sets from backend
+      if (routine.exercises && routine.exercises.length > 0) {
+        const exercisesWithSets: ExerciseWithSets[] = routine.exercises.map((re: any) => {
+          if (!re.exercise) return null;
+
+          return {
+            _id: re.exercise._id,
+            exerciseId: re.exercise.exerciseId,
+            name: re.exercise.name,
+            gifUrl: re.exercise.gifUrl,
+            targetMuscles: re.exercise.targetMuscles,
+            secondaryMuscles: re.exercise.secondaryMuscles,
+            equipments: re.exercise.equipments,
+            bodyParts: re.exercise.bodyParts,
+            instructions: re.exercise.instructions,
+            sets: re.sets.map((set: any) => ({
+              id: set._id,
+              setNumber: set.setNumber,
+              reps: set.reps,
+              weight: set.weight,
+              completed: false, // Backend doesn't store completed state for routines
+            })),
+          };
+        }).filter(Boolean) as ExerciseWithSets[];
+
+        setSelectedExercises(exercisesWithSets);
+      }
+
+      setIsLoaded(true);
     }
-  }, [routine]);
+  }, [routine, isLoaded, setSelectedExercises]);
 
   const handleAddExercises = (exercises: Exercise[]) => {
     addExercises(exercises);
@@ -77,8 +109,22 @@ export default function RoutineDetail({
         name: routineName,
       });
 
-      // TODO: Save exercises to database
-      console.log("Saving exercises to routine:", selectedExercises);
+      // Save exercises with sets to database
+      const exercisesToSave = selectedExercises.map((exercise, index) => ({
+        exerciseId: exercise.exerciseId,
+        order: index,
+        sets: exercise.sets.map((set) => ({
+          setNumber: set.setNumber,
+          reps: set.reps,
+          weight: set.weight,
+        })),
+      }));
+
+      await saveRoutineExercises({
+        routineId,
+        exercises: exercisesToSave,
+      });
+
       alert(`Routine "${routineName}" saved successfully!`);
     } catch (error) {
       console.error("Error saving routine:", error);

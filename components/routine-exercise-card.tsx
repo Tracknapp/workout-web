@@ -16,6 +16,7 @@ interface RoutineExerciseCardProps {
   onUpdateSet: (setId: string, field: "reps" | "weight", value: number) => void;
   onToggleComplete: (setId: string) => void;
   onViewDetails: () => void;
+  showComplete?: boolean; // Show complete checkbox (for workout mode)
 }
 
 export function RoutineExerciseCard({
@@ -26,6 +27,7 @@ export function RoutineExerciseCard({
   onUpdateSet,
   onToggleComplete,
   onViewDetails,
+  showComplete = false,
 }: RoutineExerciseCardProps) {
   const {
     attributes,
@@ -130,7 +132,7 @@ export function RoutineExerciseCard({
                   </span>
                 </div>
               )}
-              <div className="ml-auto w-20">
+              <div className="ml-auto" style={{ width: showComplete ? '80px' : '40px' }}>
                 <span className="text-xs font-semibold text-muted-foreground uppercase">
                   Actions
                 </span>
@@ -193,31 +195,33 @@ export function RoutineExerciseCard({
 
                   {/* Action Buttons */}
                   <div className="flex items-center gap-1 ml-auto">
-                    {/* Complete Button */}
-                    <Button
-                      variant={set.completed ? "default" : "ghost"}
-                      size="sm"
-                      onClick={() => onToggleComplete(set.id)}
-                      disabled={!isValid && !set.completed}
-                      className="h-8 w-8 p-0"
-                      title={
-                        !isValid && !set.completed
-                          ? needsWeight
-                            ? "Enter reps and weight to complete"
-                            : "Enter reps to complete"
-                          : set.completed
-                          ? "Mark as incomplete"
-                          : "Mark as complete"
-                      }
-                    >
-                      <Check
-                        className={`size-4 ${
-                          set.completed
-                            ? "text-primary-foreground"
-                            : "text-muted-foreground"
-                        }`}
-                      />
-                    </Button>
+                    {/* Complete Button - Only show in workout mode */}
+                    {showComplete && (
+                      <Button
+                        variant={set.completed ? "default" : "ghost"}
+                        size="sm"
+                        onClick={() => onToggleComplete(set.id)}
+                        disabled={!isValid && !set.completed}
+                        className="h-8 w-8 p-0"
+                        title={
+                          !isValid && !set.completed
+                            ? needsWeight
+                              ? "Enter reps and weight to complete"
+                              : "Enter reps to complete"
+                            : set.completed
+                            ? "Mark as incomplete"
+                            : "Mark as complete"
+                        }
+                      >
+                        <Check
+                          className={`size-4 ${
+                            set.completed
+                              ? "text-primary-foreground"
+                              : "text-muted-foreground"
+                          }`}
+                        />
+                      </Button>
+                    )}
 
                     {/* Remove Set Button */}
                     <Button

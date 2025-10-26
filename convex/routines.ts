@@ -33,19 +33,32 @@ export const updateRoutine = mutation({
   },
 });
 
-// Delete a routine (and all its exercises)
+// Delete a routine (and all its exercises and sets)
 export const deleteRoutine = mutation({
   args: {
     routineId: v.id("routines"),
   },
   handler: async (ctx, args) => {
-    // First, delete all routine exercises
+    // First, delete all routine exercises and their sets
     const routineExercises = await ctx.db
       .query("routineExercises")
       .withIndex("byRoutineId", (q) => q.eq("routineId", args.routineId))
       .collect();
 
     for (const exercise of routineExercises) {
+      // Delete sets for this exercise
+      const sets = await ctx.db
+        .query("routineExerciseSets")
+        .withIndex("byRoutineExerciseId", (q) =>
+          q.eq("routineExerciseId", exercise._id)
+        )
+        .collect();
+
+      for (const set of sets) {
+        await ctx.db.delete(set._id);
+      }
+
+      // Delete the exercise
       await ctx.db.delete(exercise._id);
     }
 
@@ -97,6 +110,19 @@ export const removeExerciseFromRoutine = mutation({
     routineExerciseId: v.id("routineExercises"),
   },
   handler: async (ctx, args) => {
+    // First, delete all sets for this exercise
+    const sets = await ctx.db
+      .query("routineExerciseSets")
+      .withIndex("byRoutineExerciseId", (q) =>
+        q.eq("routineExerciseId", args.routineExerciseId)
+      )
+      .collect();
+
+    for (const set of sets) {
+      await ctx.db.delete(set._id);
+    }
+
+    // Then delete the exercise
     await ctx.db.delete(args.routineExerciseId);
     return { success: true };
   },
@@ -118,6 +144,72 @@ export const reorderRoutineExercises = mutation({
         order: update.order,
       });
     }
+    return { success: true };
+  },
+});
+
+// Save routine exercises with sets (bulk upsert)
+export const saveRoutineExercises = mutation({
+  args: {
+    routineId: v.id("routines"),
+    exercises: v.array(
+      v.object({
+        exerciseId: v.string(),
+        order: v.number(),
+        sets: v.array(
+          v.object({
+            setNumber: v.number(),
+            reps: v.number(),
+            weight: v.optional(v.number()),
+          })
+        ),
+      })
+    ),
+  },
+  handler: async (ctx, args) => {
+    // Get existing routine exercises
+    const existingExercises = await ctx.db
+      .query("routineExercises")
+      .withIndex("byRoutineId", (q) => q.eq("routineId", args.routineId))
+      .collect();
+
+    // Delete all existing routine exercises and their sets
+    for (const exercise of existingExercises) {
+      // Delete sets first
+      const sets = await ctx.db
+        .query("routineExerciseSets")
+        .withIndex("byRoutineExerciseId", (q) =>
+          q.eq("routineExerciseId", exercise._id)
+        )
+        .collect();
+
+      for (const set of sets) {
+        await ctx.db.delete(set._id);
+      }
+
+      // Delete exercise
+      await ctx.db.delete(exercise._id);
+    }
+
+    // Insert new exercises and sets
+    for (const exercise of args.exercises) {
+      const routineExerciseId = await ctx.db.insert("routineExercises", {
+        routineId: args.routineId,
+        exerciseId: exercise.exerciseId,
+        order: exercise.order,
+      });
+
+      // Insert sets for this exercise
+      for (const set of exercise.sets) {
+        await ctx.db.insert("routineExerciseSets", {
+          routineExerciseId,
+          setNumber: set.setNumber,
+          reps: set.reps,
+          weight: set.weight,
+        });
+      }
+    }
+
     return { success: true };
   },
 });
@@ -151,7 +243,7 @@ export const getRoutine = query({
   },
 });
 
-// Get all exercises in a routine with full exercise details
+// Get all exercises in a routine with full exercise details and sets
 export const getRoutineExercises = query({
   args: {
     routineId: v.id("routines"),
@@ -165,13 +257,24 @@ export const getRoutineExercises = query({
     // Sort by order
     routineExercises.sort((a, b) => a.order - b.order);
 
-    // Fetch full exercise details for each
+    // Fetch full exercise details and sets for each
     const exercisesWithDetails = await Promise.all(
       routineExercises.map(async (re) => {
         const exercise = await ctx.db
           .query("exercises")
           .withIndex("byExerciseId", (q) => q.eq("exerciseId", re.exerciseId))
           .first();
+
+        // Fetch sets for this routine exercise
+        const sets = await ctx.db
+          .query("routineExerciseSets")
+          .withIndex("byRoutineExerciseId", (q) =>
+            q.eq("routineExerciseId", re._id)
+          )
+          .collect();
+
+        // Sort sets by setNumber
+        sets.sort((a, b) => a.setNumber - b.setNumber);
 
         return {
           _id: re._id,
@@ -180,6 +283,7 @@ export const getRoutineExercises = query({
           order: re.order,
           notes: re.notes,
           exercise: exercise, // Full exercise details
+          sets: sets, // Sets with reps and weight
         };
       })
     );
@@ -188,7 +292,7 @@ export const getRoutineExercises = query({
   },
 });
 
-// Get routine with all its exercises (full details)
+// Get routine with all its exercises (full details) and sets
 export const getRoutineWithExercises = query({
   args: {
     routineId: v.id("routines"),
@@ -205,13 +309,24 @@ export const getRoutineWithExercises = query({
     // Sort by order
     routineExercises.sort((a, b) => a.order - b.order);
 
-    // Fetch full exercise details
+    // Fetch full exercise details and sets
     const exercisesWithDetails = await Promise.all(
       routineExercises.map(async (re) => {
         const exercise = await ctx.db
           .query("exercises")
           .withIndex("byExerciseId", (q) => q.eq("exerciseId", re.exerciseId))
           .first();
+
+        // Fetch sets for this routine exercise
+        const sets = await ctx.db
+          .query("routineExerciseSets")
+          .withIndex("byRoutineExerciseId", (q) =>
+            q.eq("routineExerciseId", re._id)
+          )
+          .collect();
+
+        // Sort sets by setNumber
+        sets.sort((a, b) => a.setNumber - b.setNumber);
 
         return {
           _id: re._id,
@@ -220,6 +335,7 @@ export const getRoutineWithExercises = query({
           order: re.order,
           notes: re.notes,
           exercise: exercise,
+          sets: sets,
         };
       })
     );

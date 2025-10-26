@@ -1,5 +1,6 @@
 export interface Exercise {
   _id: string;
+  exerciseId: string;
   name: string;
   gifUrl: string;
   targetMuscles: string[];
