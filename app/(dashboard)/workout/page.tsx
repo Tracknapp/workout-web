@@ -93,7 +93,7 @@ export default function NewWorkout() {
       >
         <div className="text-sm">
           Are you sure you want to delete this routine? This will permanently
-          delete the routine and all exercises in it. This action cannot be
+          delete the routine and all exercises with their sets. This action cannot be
           undone.
         </div>
       </ReusableDialog>
