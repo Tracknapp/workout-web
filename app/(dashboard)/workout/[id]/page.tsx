@@ -4,7 +4,13 @@ import { use, useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { ExerciseBrowser } from "@/components/exercise-browser";
-import type { Exercise } from "@/components/exercise-browser/types";
+import { RoutineExerciseCard } from "@/components/routine-exercise-card";
+import type {
+  Exercise,
+  ExerciseWithSets,
+  ExerciseSet,
+} from "@/components/exercise-browser/types";
+import { requiresWeight } from "@/components/exercise-browser/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -13,7 +19,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import { Plus, Save, TrashIcon } from "lucide-react";
+import { Plus, Save } from "lucide-react";
 import { Id } from "@/convex/_generated/dataModel";
 
 export default function RoutineDetail({
@@ -28,7 +34,9 @@ export default function RoutineDetail({
   const updateRoutine = useMutation(api.routines.updateRoutine);
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [selectedExercises, setSelectedExercises] = useState<Exercise[]>([]);
+  const [selectedExercises, setSelectedExercises] = useState<
+    ExerciseWithSets[]
+  >([]);
   const [routineName, setRoutineName] = useState("");
 
   // Update local state when routine data loads
@@ -40,12 +48,86 @@ export default function RoutineDetail({
 
   const handleAddExercises = (exercises: Exercise[]) => {
     setSelectedExercises((prev) => {
-      // Add new exercises, avoiding duplicates
+      // Add new exercises with empty sets array, avoiding duplicates
       const existingIds = new Set(prev.map((ex) => ex._id));
-      const newExercises = exercises.filter((ex) => !existingIds.has(ex._id));
+      const newExercises: ExerciseWithSets[] = exercises
+        .filter((ex) => !existingIds.has(ex._id))
+        .map((ex) => ({
+          ...ex,
+          sets: [], // Initialize with empty sets
+        }));
       return [...prev, ...newExercises];
     });
     setIsDrawerOpen(false); // Close drawer after adding
+  };
+
+  const handleAddSet = (exerciseId: string) => {
+    setSelectedExercises((prev) =>
+      prev.map((ex) => {
+        if (ex._id === exerciseId) {
+          const newSet: ExerciseSet = {
+            id: `${exerciseId}-${Date.now()}`, // Generate unique ID
+            setNumber: ex.sets.length + 1,
+            reps: 0,
+            weight: requiresWeight(ex) ? 0 : undefined,
+            completed: false,
+          };
+          return { ...ex, sets: [...ex.sets, newSet] };
+        }
+        return ex;
+      })
+    );
+  };
+
+  const handleRemoveSet = (exerciseId: string, setId: string) => {
+    setSelectedExercises((prev) =>
+      prev.map((ex) => {
+        if (ex._id === exerciseId) {
+          return {
+            ...ex,
+            sets: ex.sets.filter((set) => set.id !== setId),
+          };
+        }
+        return ex;
+      })
+    );
+  };
+
+  const handleUpdateSet = (
+    exerciseId: string,
+    setId: string,
+    field: "reps" | "weight",
+    value: number
+  ) => {
+    setSelectedExercises((prev) =>
+      prev.map((ex) => {
+        if (ex._id === exerciseId) {
+          return {
+            ...ex,
+            sets: ex.sets.map((set) =>
+              set.id === setId ? { ...set, [field]: value } : set
+            ),
+          };
+        }
+        return ex;
+      })
+    );
+  };
+
+  const handleToggleComplete = (exerciseId: string, setId: string) => {
+    setSelectedExercises((prev) =>
+      prev.map((ex) => {
+        if (ex._id === exerciseId) {
+          return {
+            ...ex,
+            sets: ex.sets.map((set) =>
+              set.id === setId ? { ...set, completed: !set.completed } : set
+            ),
+          };
+        }
+        return ex;
+      })
+    );
   };
 
   const handleSaveRoutine = async () => {
@@ -109,45 +191,25 @@ export default function RoutineDetail({
           <h2 className="text-lg font-semibold">
             Selected Exercises ({selectedExercises.length})
           </h2>
-          <div className="grid gap-3">
+          <div className="grid gap-4">
             {selectedExercises.map((exercise) => (
-              <div
+              <RoutineExerciseCard
                 key={exercise._id}
-                className="flex items-center gap-4 p-4 border rounded-lg bg-card"
-              >
-                {/* Circular GIF */}
-                <div className="shrink-0 w-16 h-16 rounded-full overflow-hidden bg-muted border-2 border-border">
-                  <img
-                    src={exercise.gifUrl}
-                    alt={exercise.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-
-                {/* Exercise Info */}
-                <div className="flex-1">
-                  <h3 className="font-semibold capitalize">{exercise.name}</h3>
-                  <p className="text-sm text-muted-foreground capitalize">
-                    {exercise.targetMuscles.join(", ")}
-                  </p>
-                  <p className="text-xs text-muted-foreground capitalize mt-1">
-                    Equipment: {exercise.equipments.join(", ")}
-                  </p>
-                </div>
-
-                {/* Remove Button */}
-                <Button
-                  variant="link"
-                  size="sm"
-                  onClick={() =>
-                    setSelectedExercises((prev) =>
-                      prev.filter((ex) => ex._id !== exercise._id)
-                    )
-                  }
-                >
-                  <TrashIcon className="text-red-700" />
-                </Button>
-              </div>
+                exercise={exercise}
+                onRemoveExercise={() =>
+                  setSelectedExercises((prev) =>
+                    prev.filter((ex) => ex._id !== exercise._id)
+                  )
+                }
+                onAddSet={() => handleAddSet(exercise._id)}
+                onRemoveSet={(setId) => handleRemoveSet(exercise._id, setId)}
+                onUpdateSet={(setId, field, value) =>
+                  handleUpdateSet(exercise._id, setId, field, value)
+                }
+                onToggleComplete={(setId) =>
+                  handleToggleComplete(exercise._id, setId)
+                }
+              />
             ))}
           </div>
         </div>

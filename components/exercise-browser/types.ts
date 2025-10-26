@@ -13,4 +13,16 @@ export interface FilterOption {
   name: string;
 }
 
+export interface ExerciseSet {
+  id: string; // Local ID for frontend
+  setNumber: number;
+  reps: number;
+  weight?: number; // Optional, only for weight-based exercises
+  completed: boolean; // Track if set is done
+}
+
+export interface ExerciseWithSets extends Exercise {
+  sets: ExerciseSet[];
+}
+
 export const PAGE_SIZE = 20;
