@@ -261,3 +261,105 @@ export const getUserSessions = query({
     }
   },
 });
+
+// Get workout statistics for charts (completed workouts grouped by time period)
+export const getWorkoutStats = query({
+  args: {
+    period: v.union(
+      v.literal("week"),
+      v.literal("month"),
+      v.literal("year"),
+      v.literal("all")
+    ),
+  },
+  handler: async (ctx, args) => {
+    try {
+      const userId = await getCurrentUserId(ctx);
+
+      // Get all completed sessions
+      const sessions = await ctx.db
+        .query("workoutSessions")
+        .withIndex("byUserId", (q) => q.eq("userId", userId as Id<"users">))
+        .filter((q) => q.eq(q.field("status"), "completed"))
+        .collect();
+
+      const now = Date.now();
+      const oneDayMs = 24 * 60 * 60 * 1000;
+
+      // Filter by time period
+      let filteredSessions = sessions;
+      let periodInDays = 7; // Default for week
+
+      switch (args.period) {
+        case "week":
+          periodInDays = 7;
+          filteredSessions = sessions.filter(
+            (s) => s.startTime >= now - 7 * oneDayMs
+          );
+          break;
+        case "month":
+          periodInDays = 30;
+          filteredSessions = sessions.filter(
+            (s) => s.startTime >= now - 30 * oneDayMs
+          );
+          break;
+        case "year":
+          periodInDays = 365;
+          filteredSessions = sessions.filter(
+            (s) => s.startTime >= now - 365 * oneDayMs
+          );
+          break;
+        case "all":
+          filteredSessions = sessions;
+          // Calculate days from first workout to now
+          if (sessions.length > 0) {
+            const oldestSession = sessions.reduce((oldest, current) =>
+              current.startTime < oldest.startTime ? current : oldest
+            );
+            periodInDays = Math.ceil(
+              (now - oldestSession.startTime) / oneDayMs
+            );
+          }
+          break;
+      }
+
+      // Group by date
+      const workoutsByDate = new Map<string, number>();
+
+      // Initialize all dates in the period with 0
+      const startDate = new Date(now - periodInDays * oneDayMs);
+      for (let i = 0; i < periodInDays; i++) {
+        const date = new Date(startDate.getTime() + i * oneDayMs);
+        const dateKey = date.toISOString().split("T")[0];
+        workoutsByDate.set(dateKey, 0);
+      }
+
+      // Count workouts by date
+      filteredSessions.forEach((session) => {
+        const date = new Date(session.startTime);
+        const dateKey = date.toISOString().split("T")[0];
+        workoutsByDate.set(dateKey, (workoutsByDate.get(dateKey) || 0) + 1);
+      });
+
+      // Convert to array format for charts
+      const chartData = Array.from(workoutsByDate.entries())
+        .map(([date, count]) => ({
+          date,
+          workouts: count,
+        }))
+        .sort((a, b) => a.date.localeCompare(b.date));
+
+      return {
+        data: chartData,
+        totalWorkouts: filteredSessions.length,
+        period: args.period,
+      };
+    } catch {
+      return {
+        data: [],
+        totalWorkouts: 0,
+        period: args.period,
+      };
+    }
+  },
+});
