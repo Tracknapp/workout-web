@@ -129,7 +129,7 @@ export default function NewWorkout() {
                 <Button
                   variant={"ghost"}
                   size={"icon"}
-                  onClick={() => router.push(`/workout/${routine._id}/start`)}
+                  onClick={() => router.push(`/workout/${routine._id}/session`)}
                   title="Start workout"
                 >
                   <Play className="size-4" />
