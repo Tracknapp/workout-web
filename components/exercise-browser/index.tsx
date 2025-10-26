@@ -4,12 +4,18 @@ import { useState, useMemo, useEffect } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
 import { SearchBar } from "./search-bar";
 import { FilterDropdown } from "./filter-dropdown";
 import { ExerciseList } from "./exercise-list";
 import { PAGE_SIZE, type Exercise } from "./types";
+import { Check } from "lucide-react";
 
-export function ExerciseBrowser() {
+interface ExerciseBrowserProps {
+  onAddExercises?: (exercises: Exercise[]) => void;
+}
+
+export function ExerciseBrowser({ onAddExercises }: ExerciseBrowserProps) {
   const [selectedMuscle, setSelectedMuscle] = useState<string>("all");
   const [selectedEquipment, setSelectedEquipment] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -19,6 +25,9 @@ export function ExerciseBrowser() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [allExercises, setAllExercises] = useState<Exercise[]>([]);
   const [isDone, setIsDone] = useState(false);
+  const [selectedExerciseIds, setSelectedExerciseIds] = useState<Set<string>>(
+    new Set()
+  );
 
   // Fetch all data
   const musclesData = useQuery(api.exercises.getAllMuscles);
@@ -107,6 +116,30 @@ export function ExerciseBrowser() {
     setOffset((prev) => prev + PAGE_SIZE);
   };
 
+  const handleToggleExercise = (exerciseId: string) => {
+    setSelectedExerciseIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(exerciseId)) {
+        newSet.delete(exerciseId);
+      } else {
+        newSet.add(exerciseId);
+      }
+      return newSet;
+    });
+  };
+
+  const handleAddExercises = () => {
+    if (onAddExercises) {
+      const selectedExercises = allExercises.filter((ex) =>
+        selectedExerciseIds.has(ex._id)
+      );
+      onAddExercises(selectedExercises);
+      setSelectedExerciseIds(new Set()); // Clear selection after adding
+    }
+  };
+
+  const selectedCount = selectedExerciseIds.size;
+
   return (
     <div className="flex flex-col h-full border-l">
       {/* Header */}
@@ -160,8 +193,24 @@ export function ExerciseBrowser() {
         isLoading={!exercisesData}
         isLoadingMore={isLoadingMore}
         isDone={isDone}
+        selectedExercises={selectedExerciseIds}
         onLoadMore={handleLoadMore}
+        onToggleExercise={handleToggleExercise}
       />
+
+      {/* Add Selected Exercises Button */}
+      {selectedCount > 0 && (
+        <div className="p-4 border-t bg-background">
+          <Button
+            onClick={handleAddExercises}
+            className="w-full gap-2"
+            size="lg"
+          >
+            <Check className="size-4" />
+            Add {selectedCount} Exercise{selectedCount > 1 ? "s" : ""}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

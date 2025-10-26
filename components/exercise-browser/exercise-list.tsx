@@ -3,6 +3,7 @@
 import { useRef, useEffect } from "react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import type { Exercise } from "./types";
 
 interface ExerciseListProps {
@@ -10,7 +11,9 @@ interface ExerciseListProps {
   isLoading: boolean;
   isLoadingMore: boolean;
   isDone: boolean;
+  selectedExercises: Set<string>;
   onLoadMore: () => void;
+  onToggleExercise: (exerciseId: string) => void;
 }
 
 export function ExerciseList({
@@ -18,7 +21,9 @@ export function ExerciseList({
   isLoading,
   isLoadingMore,
   isDone,
+  selectedExercises,
   onLoadMore,
+  onToggleExercise,
 }: ExerciseListProps) {
   const sentinelRef = useRef<HTMLDivElement>(null);
 
@@ -78,31 +83,44 @@ export function ExerciseList({
             )}
 
             {/* Render exercises */}
-            {exercises.map((exercise) => (
-              <div
-                key={exercise._id}
-                className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors cursor-pointer"
-              >
-                {/* Circular GIF */}
-                <div className="shrink-0 w-12 h-12 rounded-full overflow-hidden bg-muted border-2 border-border">
-                  <img
-                    src={exercise.gifUrl}
-                    alt={exercise.name}
-                    className="w-full h-full object-cover"
+            {exercises.map((exercise) => {
+              const isSelected = selectedExercises.has(exercise._id);
+              return (
+                <div
+                  key={exercise._id}
+                  onClick={() => onToggleExercise(exercise._id)}
+                  className={`flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors cursor-pointer ${
+                    isSelected ? "bg-accent" : ""
+                  }`}
+                >
+                  {/* Checkbox */}
+                  <Checkbox
+                    checked={isSelected}
+                    onCheckedChange={() => onToggleExercise(exercise._id)}
+                    onClick={(e: React.MouseEvent) => e.stopPropagation()}
                   />
-                </div>
 
-                {/* Exercise Info */}
-                <div className="flex-1 min-w-0">
-                  <h4 className="font-medium text-sm capitalize truncate">
-                    {exercise.name}
-                  </h4>
-                  <p className="text-xs text-muted-foreground capitalize truncate">
-                    {exercise.targetMuscles.join(", ")}
-                  </p>
+                  {/* Circular GIF */}
+                  <div className="shrink-0 w-12 h-12 rounded-full overflow-hidden bg-muted border-2 border-border">
+                    <img
+                      src={exercise.gifUrl}
+                      alt={exercise.name}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+
+                  {/* Exercise Info */}
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-medium text-sm capitalize truncate">
+                      {exercise.name}
+                    </h4>
+                    <p className="text-xs text-muted-foreground capitalize truncate">
+                      {exercise.targetMuscles.join(", ")}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
 
             {/* Infinite Scroll Sentinel */}
             {exercises.length > 0 && (
