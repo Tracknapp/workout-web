@@ -113,6 +113,31 @@ export function RoutineExerciseCard({
           <p className="text-xs text-muted-foreground">No sets added yet</p>
         ) : (
           <div className="space-y-2">
+            {/* Header Row */}
+            <div className="flex items-center gap-2 px-2">
+              <span className="text-xs font-semibold text-muted-foreground uppercase w-8 text-center">
+                Set
+              </span>
+              <div className="w-32">
+                <span className="text-xs font-semibold text-muted-foreground uppercase">
+                  Reps
+                </span>
+              </div>
+              {needsWeight && (
+                <div className="w-32">
+                  <span className="text-xs font-semibold text-muted-foreground uppercase">
+                    Weight (lbs)
+                  </span>
+                </div>
+              )}
+              <div className="ml-auto w-20">
+                <span className="text-xs font-semibold text-muted-foreground uppercase">
+                  Actions
+                </span>
+              </div>
+            </div>
+
+            {/* Sets Rows */}
             {exercise.sets.map((set, index) => {
               // Validate if set can be completed
               const hasReps = set.reps > 0;
@@ -128,46 +153,42 @@ export function RoutineExerciseCard({
                       : "bg-muted/50"
                   }`}
                 >
-                  <span className="text-sm font-medium w-8 h-8 border flex items-center justify-center">
+                  <span className="text-sm font-medium w-8 h-8 border flex items-center justify-center rounded">
                     {index + 1}
                   </span>
 
                   {/* Reps Input */}
-                  <div className="flex items-center gap-1">
+                  <Input
+                    type="number"
+                    placeholder="0"
+                    value={set.reps || ""}
+                    onChange={(e) =>
+                      onUpdateSet(
+                        set.id,
+                        "reps",
+                        parseInt(e.target.value) || 0
+                      )
+                    }
+                    className="h-8 w-32"
+                    min="0"
+                  />
+
+                  {/* Weight Input (conditional) */}
+                  {needsWeight && (
                     <Input
                       type="number"
-                      placeholder="Reps"
-                      value={set.reps || ""}
+                      placeholder="0"
+                      value={set.weight || ""}
                       onChange={(e) =>
                         onUpdateSet(
                           set.id,
-                          "reps",
+                          "weight",
                           parseInt(e.target.value) || 0
                         )
                       }
                       className="h-8 w-32"
                       min="0"
                     />
-                  </div>
-
-                  {/* Weight Input (conditional) */}
-                  {needsWeight && (
-                    <div className="flex items-center gap-1">
-                      <Input
-                        type="number"
-                        placeholder="Weight"
-                        value={set.weight || ""}
-                        onChange={(e) =>
-                          onUpdateSet(
-                            set.id,
-                            "weight",
-                            parseInt(e.target.value) || 0
-                          )
-                        }
-                        className="h-8 w-32"
-                        min="0"
-                      />
-                    </div>
                   )}
 
                   {/* Action Buttons */}
