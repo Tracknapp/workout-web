@@ -8,6 +8,7 @@ export const User = {
   lastName: v.optional(v.string()),
   profilePicture: v.optional(v.string()),
   gender: v.optional(v.string()),
+  weightUnit: v.optional(v.union(v.literal("lbs"), v.literal("kgs"))),
 };
 
 export const BodyPart = {

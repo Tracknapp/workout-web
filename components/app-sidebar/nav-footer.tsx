@@ -6,7 +6,6 @@ import {
   SidebarMenu,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { ModeToggle } from "../mode-toggle";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Button } from "../ui/button";
@@ -40,23 +39,20 @@ export function NavFooter() {
                 {user?.givenName}
               </AvatarFallback>
             </Avatar>
-            <p className="text-sm font-medium truncate">{user?.givenName}</p>
+            <p className="text-sm font-medium truncate">{user?.email}</p>
 
-            <div className="flex items-center gap-2">
-              <ModeToggle />
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleLogout}
-                disabled={isLoggingOut}
-              >
-                {isLoggingOut ? (
-                  <Loader2 size={16} className="animate-spin" aria-hidden="true" />
-                ) : (
-                  <LogOut size={16} aria-hidden="true" />
-                )}
-              </Button>
-            </div>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+            >
+              {isLoggingOut ? (
+                <Loader2 size={16} className="animate-spin" aria-hidden="true" />
+              ) : (
+                <LogOut size={16} aria-hidden="true" />
+              )}
+            </Button>
           </div>
         </SidebarMenuItem>
       </SidebarMenu>

@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { internalMutation, query } from "./_generated/server";
+import { internalMutation, mutation, query } from "./_generated/server";
 import type { QueryCtx, MutationCtx } from "./_generated/server";
 
 export async function getCurrentUserId(ctx: QueryCtx | MutationCtx) {
@@ -47,5 +47,51 @@ export const getUser = query({
     }
 
     return user;
+  },
+});
+
+export const getUserProfile = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      return null;
+    }
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("byClerkId", (q) => q.eq("clerkId", identity.subject))
+      .first();
+
+    return user;
+  },
+});
+
+export const updateUserPreferences = mutation({
+  args: {
+    gender: v.optional(v.string()),
+    weightUnit: v.optional(v.union(v.literal("lbs"), v.literal("kgs"))),
+  },
+  handler: async (ctx, args) => {
+    const userId = await getCurrentUserId(ctx);
+    if (!userId) {
+      throw new Error("User not authenticated");
+    }
+
+    const updates: {
+      gender?: string;
+      weightUnit?: "lbs" | "kgs";
+    } = {};
+
+    if (args.gender !== undefined) {
+      updates.gender = args.gender;
+    }
+    if (args.weightUnit !== undefined) {
+      updates.weightUnit = args.weightUnit;
+    }
+
+    await ctx.db.patch(userId, updates);
+
+    return { success: true };
   },
 });
