@@ -12,6 +12,7 @@ import type * as exercises from "../exercises.js";
 import type * as http from "../http.js";
 import type * as routines from "../routines.js";
 import type * as seed from "../seed.js";
+import type * as sessions from "../sessions.js";
 import type * as user from "../user.js";
 
 import type {
@@ -33,6 +34,7 @@ declare const fullApi: ApiFromModules<{
   http: typeof http;
   routines: typeof routines;
   seed: typeof seed;
+  sessions: typeof sessions;
   user: typeof user;
 }>;
 declare const fullApiWithMounts: typeof fullApi;
