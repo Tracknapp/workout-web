@@ -5,6 +5,7 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { ExerciseBrowser } from "@/components/exercise-browser";
 import { RoutineExerciseCard } from "@/components/routine-exercise-card";
+import { ExerciseDetailDrawer } from "@/components/exercise-detail-drawer";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,7 +20,7 @@ import { DndContext, closestCenter } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { useRoutineExercises } from "@/hooks/useRoutineExercises";
 import { useDragAndDrop } from "@/hooks/useDragAndDrop";
-import type { Exercise } from "@/components/exercise-browser/types";
+import type { Exercise, ExerciseWithSets } from "@/components/exercise-browser/types";
 
 export default function RoutineDetail({
   params,
@@ -34,6 +35,8 @@ export default function RoutineDetail({
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [routineName, setRoutineName] = useState("");
+  const [selectedExerciseForDetails, setSelectedExerciseForDetails] = useState<ExerciseWithSets | null>(null);
+  const [isDetailDrawerOpen, setIsDetailDrawerOpen] = useState(false);
 
   // Custom hooks for exercise management and drag-and-drop
   const {
@@ -59,6 +62,11 @@ export default function RoutineDetail({
   const handleAddExercises = (exercises: Exercise[]) => {
     addExercises(exercises);
     setIsDrawerOpen(false); // Close drawer after adding
+  };
+
+  const handleViewExerciseDetails = (exercise: ExerciseWithSets) => {
+    setSelectedExerciseForDetails(exercise);
+    setIsDetailDrawerOpen(true);
   };
 
   const handleSaveRoutine = async () => {
@@ -145,6 +153,7 @@ export default function RoutineDetail({
                     onToggleComplete={(setId) =>
                       handleToggleComplete(exercise._id, setId)
                     }
+                    onViewDetails={() => handleViewExerciseDetails(exercise)}
                   />
                 ))}
               </div>
@@ -159,6 +168,7 @@ export default function RoutineDetail({
         </div>
       )}
 
+      {/* Exercise Browser Drawer */}
       <Sheet open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
         <SheetContent
           side="right"
@@ -172,6 +182,13 @@ export default function RoutineDetail({
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Exercise Detail Drawer */}
+      <ExerciseDetailDrawer
+        exercise={selectedExerciseForDetails}
+        open={isDetailDrawerOpen}
+        onOpenChange={setIsDetailDrawerOpen}
+      />
     </div>
   );
 }

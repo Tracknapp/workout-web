@@ -15,6 +15,7 @@ interface RoutineExerciseCardProps {
   onRemoveSet: (setId: string) => void;
   onUpdateSet: (setId: string, field: "reps" | "weight", value: number) => void;
   onToggleComplete: (setId: string) => void;
+  onViewDetails: () => void;
 }
 
 export function RoutineExerciseCard({
@@ -24,6 +25,7 @@ export function RoutineExerciseCard({
   onRemoveSet,
   onUpdateSet,
   onToggleComplete,
+  onViewDetails,
 }: RoutineExerciseCardProps) {
   const {
     attributes,
@@ -60,24 +62,30 @@ export function RoutineExerciseCard({
           <GripVertical className="size-5 text-muted-foreground" />
         </div>
 
+        {/* Clickable Exercise Info Area */}
+        <div
+          onClick={onViewDetails}
+          className="flex items-center gap-4 flex-1 cursor-pointer hover:opacity-80 transition-opacity rounded-md p-2 -m-2"
+        >
           {/* Circular GIF */}
           <div className="shrink-0 w-16 h-16 rounded-full overflow-hidden bg-muted border-2 border-border">
-          <img
-            src={exercise.gifUrl}
-            alt={exercise.name}
-            className="w-full h-full object-cover"
-          />
-        </div>
+            <img
+              src={exercise.gifUrl}
+              alt={exercise.name}
+              className="w-full h-full object-cover"
+            />
+          </div>
 
-        {/* Exercise Info */}
-        <div className="flex-1">
-          <h3 className="font-semibold capitalize">{exercise.name}</h3>
-          <p className="text-sm text-muted-foreground capitalize">
-            {exercise.targetMuscles.join(", ")}
-          </p>
-          <p className="text-xs text-muted-foreground capitalize mt-1">
-            Equipment: {exercise.equipments.join(", ")}
-          </p>
+          {/* Exercise Info */}
+          <div className="flex-1">
+            <h3 className="font-semibold capitalize">{exercise.name}</h3>
+            <p className="text-sm text-muted-foreground capitalize">
+              {exercise.targetMuscles.join(", ")}
+            </p>
+            <p className="text-xs text-muted-foreground capitalize mt-1">
+              Equipment: {exercise.equipments.join(", ")}
+            </p>
+          </div>
         </div>
 
         {/* Remove Exercise Button */}
@@ -124,41 +132,43 @@ export function RoutineExerciseCard({
                     Set {index + 1}
                   </span>
 
-                {/* Reps Input */}
-                <div className="flex items-center gap-1">
-                  <Input
-                    type="number"
-                    placeholder="Reps"
-                    value={set.reps || ""}
-                    onChange={(e) =>
-                      onUpdateSet(set.id, "reps", parseInt(e.target.value) || 0)
-                    }
-                    className="h-8 w-20"
-                    min="0"
-                  />
-                  <span className="text-xs text-muted-foreground">reps</span>
-                </div>
-
-                {/* Weight Input (conditional) */}
-                {needsWeight && (
+                  {/* Reps Input */}
                   <div className="flex items-center gap-1">
                     <Input
                       type="number"
-                      placeholder="Weight"
-                      value={set.weight || ""}
+                      placeholder="Reps"
+                      value={set.reps || ""}
                       onChange={(e) =>
                         onUpdateSet(
                           set.id,
-                          "weight",
+                          "reps",
                           parseInt(e.target.value) || 0
                         )
                       }
-                      className="h-8 w-20"
+                      className="h-8 w-32"
                       min="0"
                     />
-                    <span className="text-xs text-muted-foreground">lbs</span>
                   </div>
-                )}
+
+                  {/* Weight Input (conditional) */}
+                  {needsWeight && (
+                    <div className="flex items-center gap-1">
+                      <Input
+                        type="number"
+                        placeholder="Weight"
+                        value={set.weight || ""}
+                        onChange={(e) =>
+                          onUpdateSet(
+                            set.id,
+                            "weight",
+                            parseInt(e.target.value) || 0
+                          )
+                        }
+                        className="h-8 w-32"
+                        min="0"
+                      />
+                    </div>
+                  )}
 
                   {/* Action Buttons */}
                   <div className="flex items-center gap-1 ml-auto">

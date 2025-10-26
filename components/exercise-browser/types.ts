@@ -6,6 +6,7 @@ export interface Exercise {
   secondaryMuscles: string[];
   equipments: string[];
   bodyParts: string[];
+  instructions: string[];
 }
 
 export interface FilterOption {
