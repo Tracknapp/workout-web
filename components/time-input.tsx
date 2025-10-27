@@ -40,18 +40,21 @@ export function TimeInput({
   placeholder = "00:00:00",
 }: TimeInputProps) {
   const [displayValue, setDisplayValue] = useState(secondsToTimeString(value));
+  const [isFocused, setIsFocused] = useState(false);
 
   useEffect(() => {
-    setDisplayValue(secondsToTimeString(value));
-  }, [value]);
+    // Only update display value from prop when not focused (not actively typing)
+    if (!isFocused) {
+      setDisplayValue(secondsToTimeString(value));
+    }
+  }, [value, isFocused]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value;
 
-    // Allow empty input
+    // Allow empty input but don't call onChange yet
     if (input === "") {
       setDisplayValue("");
-      onChange(0);
       return;
     }
 
@@ -60,7 +63,6 @@ export function TimeInput({
 
     if (digits.length === 0) {
       setDisplayValue("");
-      onChange(0);
       return;
     }
 
@@ -98,7 +100,13 @@ export function TimeInput({
     }
   };
 
+  const handleFocus = () => {
+    setIsFocused(true);
+  };
+
   const handleBlur = () => {
+    setIsFocused(false);
+
     // If there's partial input on blur, pad it and save
     if (displayValue && displayValue.replace(/\D/g, "").length > 0) {
       const digits = displayValue.replace(/\D/g, "");
@@ -124,6 +132,9 @@ export function TimeInput({
         const totalSeconds = hours * 3600 + minutes * 60 + seconds;
         onChange(totalSeconds);
       }
+    } else {
+      // Empty input on blur - save as 0
+      onChange(0);
     }
   };
 
@@ -133,6 +144,7 @@ export function TimeInput({
       placeholder={placeholder}
       value={displayValue}
       onChange={handleChange}
+      onFocus={handleFocus}
       onBlur={handleBlur}
       className={className}
       maxLength={8} // hh:mm:ss
