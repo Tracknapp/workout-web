@@ -4,6 +4,7 @@ import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import ConvexClientProvider from "@/providers/ConvexClientProvider";
 import { ThemeProvider } from "@/providers/theme-provider";
+import { PWARegister } from "@/components/pwa-register";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,6 +19,25 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Workout Tracker",
   description: "Track your workouts, exercises, and fitness progress",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Workout Tracker",
+  },
+  formatDetection: {
+    telephone: false,
+  },
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#000000" },
+  ],
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+  },
 };
 
 export default function RootLayout({
@@ -30,6 +50,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <PWARegister />
         <ClerkProvider>
           <ThemeProvider
             attribute="class"
