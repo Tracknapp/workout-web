@@ -108,7 +108,7 @@ export default function WorkoutSession({
               setNumber: newSetNumber,
               reps: 0,
               weight: isCardio ? 0 : ex.sets[0]?.weight || 0,
-              time: isCardio ? "" : undefined,
+              time: isCardio ? 0 : undefined, // Time in seconds
               completed: false,
             };
             return { ...ex, sets: [...ex.sets, newSet] };

@@ -159,7 +159,7 @@ export function RoutineExerciseCard({
             {/* Sets Rows */}
             {exercise.sets.map((set, index) => {
               // Validate if set can be completed
-              const hasTimeOrReps = isCardio ? (set.time && set.time.length > 0) : set.reps > 0;
+              const hasTimeOrReps = isCardio ? (set.time && set.time > 0) : set.reps > 0;
               const hasWeightOrDistance = showWeightOrDistance ? (set.weight ?? 0) > 0 : true;
               const isValid = hasTimeOrReps && hasWeightOrDistance;
 
@@ -180,7 +180,7 @@ export function RoutineExerciseCard({
                   {isCardio ? (
                     <TimeInput
                       placeholder="00:00:00"
-                      value={set.time || ""}
+                      value={set.time}
                       onChange={(value) =>
                         onUpdateSet(
                           exercise._id,

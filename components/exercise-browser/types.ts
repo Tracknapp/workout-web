@@ -21,7 +21,7 @@ export interface ExerciseSet {
   reps: number;
   weight?: number; // Optional, only for weight-based exercises (or distance for cardio)
   weightUnit?: "lbs" | "kgs"; // Weight unit for this set
-  time?: string; // Time in hh:mm:ss format for cardio exercises
+  time?: number; // Time in seconds for cardio exercises
   distanceUnit?: "km" | "m"; // Distance unit for cardio exercises
   completed: boolean; // Track if set is done
 }

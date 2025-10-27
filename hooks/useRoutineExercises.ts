@@ -35,7 +35,7 @@ export function useRoutineExercises() {
             setNumber: ex.sets.length + 1,
             reps: isCardio ? 0 : 0, // Always initialize with 0
             weight: requiresWeight(ex) || isCardio ? 0 : undefined,
-            time: isCardio ? "" : undefined,
+            time: isCardio ? 0 : undefined, // Time in seconds
             completed: false,
           };
           return { ...ex, sets: [...ex.sets, newSet] };

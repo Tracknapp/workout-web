@@ -9,6 +9,17 @@ import { useRouter } from "next/navigation";
 import { Id } from "@/convex/_generated/dataModel";
 import { format } from "date-fns";
 
+// Convert seconds to hh:mm:ss format
+function secondsToTimeString(seconds: number | undefined): string {
+  if (!seconds || seconds === 0) return "-";
+
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+}
+
 export default function WorkoutHistoryDetail({
   params,
 }: {
@@ -138,35 +149,43 @@ export default function WorkoutHistoryDetail({
 
                     {/* Sets Table */}
                     <div className="overflow-x-auto">
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="border-b">
-                            <th className="text-left py-2 px-2 font-medium text-muted-foreground">
-                              Set
-                            </th>
-                            <th className="text-left py-2 px-2 font-medium text-muted-foreground">
-                              Reps
-                            </th>
-                            <th className="text-left py-2 px-2 font-medium text-muted-foreground">
-                              Weight ({exercise.sets[0]?.weightUnit || "lbs"})
-                            </th>
-                            <th className="text-center py-2 px-2 font-medium text-muted-foreground">
-                              Done
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {exercise.sets.map((set) => (
-                            <tr key={set._id} className="border-b last:border-0">
-                              <td className="py-2 px-2">{set.setNumber}</td>
-                              <td className="py-2 px-2">{set.reps}</td>
-                              <td className="py-2 px-2">
-                                {set.weight ? `${set.weight}` : "-"}
-                              </td>
-                              <td className="py-2 px-2 text-center">
-                                {set.completed ? (
-                                  <CheckCircle2 className="size-5 text-green-500 mx-auto" />
-                                ) : (
+                      {(() => {
+                        const isCardio = exercise.targetMuscles.some((m: string) => m.toLowerCase() === "cardio");
+                        return (
+                          <table className="w-full text-sm">
+                            <thead>
+                              <tr className="border-b">
+                                <th className="text-left py-2 px-2 font-medium text-muted-foreground">
+                                  Set
+                                </th>
+                                <th className="text-left py-2 px-2 font-medium text-muted-foreground">
+                                  {isCardio ? "Time" : "Reps"}
+                                </th>
+                                <th className="text-left py-2 px-2 font-medium text-muted-foreground">
+                                  {isCardio
+                                    ? `Distance (${exercise.sets[0]?.distanceUnit || "km"})`
+                                    : `Weight (${exercise.sets[0]?.weightUnit || "lbs"})`
+                                  }
+                                </th>
+                                <th className="text-center py-2 px-2 font-medium text-muted-foreground">
+                                  Done
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {exercise.sets.map((set) => (
+                                <tr key={set._id} className="border-b last:border-0">
+                                  <td className="py-2 px-2">{set.setNumber}</td>
+                                  <td className="py-2 px-2">
+                                    {isCardio ? secondsToTimeString(set.time) : set.reps}
+                                  </td>
+                                  <td className="py-2 px-2">
+                                    {set.weight ? `${set.weight}` : "-"}
+                                  </td>
+                                  <td className="py-2 px-2 text-center">
+                                    {set.completed ? (
+                                      <CheckCircle2 className="size-5 text-green-500 mx-auto" />
+                                    ) : (
                                   <div className="size-5 border-2 rounded-full mx-auto" />
                                 )}
                               </td>
@@ -174,6 +193,8 @@ export default function WorkoutHistoryDetail({
                           ))}
                         </tbody>
                       </table>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>

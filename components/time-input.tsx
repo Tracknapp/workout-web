@@ -4,10 +4,33 @@ import { Input } from "@/components/ui/input";
 import { useState, useEffect } from "react";
 
 interface TimeInputProps {
-  value: string;
-  onChange: (value: string) => void;
+  value: number | undefined; // Now accepts seconds as number
+  onChange: (value: number) => void; // Now returns seconds as number
   className?: string;
   placeholder?: string;
+}
+
+// Convert seconds to hh:mm:ss format
+function secondsToTimeString(seconds: number | undefined): string {
+  if (!seconds || seconds === 0) return "";
+
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+}
+
+// Convert hh:mm:ss format to seconds
+function timeStringToSeconds(timeString: string): number {
+  const parts = timeString.split(":");
+  if (parts.length !== 3) return 0;
+
+  const hours = parseInt(parts[0]) || 0;
+  const minutes = parseInt(parts[1]) || 0;
+  const seconds = parseInt(parts[2]) || 0;
+
+  return hours * 3600 + minutes * 60 + seconds;
 }
 
 export function TimeInput({
@@ -16,31 +39,11 @@ export function TimeInput({
   className,
   placeholder = "00:00:00",
 }: TimeInputProps) {
-  const [displayValue, setDisplayValue] = useState(value || "");
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [displayValue, setDisplayValue] = useState(secondsToTimeString(value));
 
   useEffect(() => {
-    setDisplayValue(value || "");
-    setHasUnsavedChanges(false);
+    setDisplayValue(secondsToTimeString(value));
   }, [value]);
-
-  const formatTime = (input: string): string => {
-    // Remove all non-digit characters
-    const digits = input.replace(/\D/g, "");
-
-    // Limit to 6 digits (hhmmss)
-    const limitedDigits = digits.slice(0, 6);
-
-    // Pad with zeros if needed
-    const paddedDigits = limitedDigits.padEnd(6, "0");
-
-    // Format as hh:mm:ss
-    const hours = paddedDigits.slice(0, 2);
-    const minutes = paddedDigits.slice(2, 4);
-    const seconds = paddedDigits.slice(4, 6);
-
-    return `${hours}:${minutes}:${seconds}`;
-  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const input = e.target.value;
@@ -48,7 +51,7 @@ export function TimeInput({
     // Allow empty input
     if (input === "") {
       setDisplayValue("");
-      setHasUnsavedChanges(true);
+      onChange(0);
       return;
     }
 
@@ -57,79 +60,70 @@ export function TimeInput({
 
     if (digits.length === 0) {
       setDisplayValue("");
-      setHasUnsavedChanges(true);
+      onChange(0);
       return;
     }
 
-    // Format the digits for display only
+    // Limit to 6 digits (hhmmss)
+    const limitedDigits = digits.slice(0, 6);
+
+    // Auto-format as user types
     let formatted = "";
-    if (digits.length <= 2) {
-      formatted = digits;
-    } else if (digits.length <= 4) {
-      formatted = `${digits.slice(0, 2)}:${digits.slice(2)}`;
+    if (limitedDigits.length <= 2) {
+      formatted = limitedDigits;
+    } else if (limitedDigits.length <= 4) {
+      formatted = `${limitedDigits.slice(0, 2)}:${limitedDigits.slice(2)}`;
     } else {
-      formatted = `${digits.slice(0, 2)}:${digits.slice(2, 4)}:${digits.slice(4, 6)}`;
+      formatted = `${limitedDigits.slice(0, 2)}:${limitedDigits.slice(2, 4)}:${limitedDigits.slice(4, 6)}`;
     }
 
     setDisplayValue(formatted);
-    setHasUnsavedChanges(true);
 
-    // Only call onChange with fully formatted time (6 digits)
-    if (digits.length === 6) {
-      const hours = digits.slice(0, 2);
-      const minutes = digits.slice(2, 4);
-      const seconds = digits.slice(4, 6);
+    // If we have 6 digits, validate and save
+    if (limitedDigits.length === 6) {
+      const hours = parseInt(limitedDigits.slice(0, 2));
+      const minutes = parseInt(limitedDigits.slice(2, 4));
+      const seconds = parseInt(limitedDigits.slice(4, 6));
 
       // Validate time values
-      const m = parseInt(minutes);
-      const s = parseInt(seconds);
-
-      if (m >= 60 || s >= 60) {
-        // Invalid time, don't save
+      if (minutes >= 60 || seconds >= 60) {
+        // Invalid time, don't save - reset to previous value
+        setDisplayValue(secondsToTimeString(value));
         return;
       }
 
-      onChange(`${hours}:${minutes}:${seconds}`);
-      setHasUnsavedChanges(false);
+      // Convert to seconds and save
+      const totalSeconds = hours * 3600 + minutes * 60 + seconds;
+      onChange(totalSeconds);
     }
-    // Don't call onChange for incomplete times during typing
   };
 
   const handleBlur = () => {
-    // Only process if there are unsaved changes
-    if (!hasUnsavedChanges) {
-      return;
-    }
-
+    // If there's partial input on blur, pad it and save
     if (displayValue && displayValue.replace(/\D/g, "").length > 0) {
       const digits = displayValue.replace(/\D/g, "");
 
-      // Only save if we have at least some input
-      if (digits.length > 0) {
-        const formatted = formatTime(displayValue);
+      if (digits.length > 0 && digits.length < 6) {
+        // Pad to 6 digits
+        const paddedDigits = digits.padEnd(6, "0");
+        const hours = parseInt(paddedDigits.slice(0, 2));
+        const minutes = parseInt(paddedDigits.slice(2, 4));
+        const seconds = parseInt(paddedDigits.slice(4, 6));
 
-        // Validate the formatted time before saving
-        const parts = formatted.split(":");
-        const hours = parseInt(parts[0] || "0");
-        const minutes = parseInt(parts[1] || "0");
-        const seconds = parseInt(parts[2] || "0");
-
-        // Check if time is valid (minutes and seconds < 60)
+        // Validate
         if (minutes >= 60 || seconds >= 60) {
-          // Invalid time - show original valid value or empty
-          setDisplayValue(value || "");
-          setHasUnsavedChanges(false);
+          // Invalid - reset to previous value
+          setDisplayValue(secondsToTimeString(value));
           return;
         }
 
+        // Format and save
+        const formatted = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
         setDisplayValue(formatted);
-        onChange(formatted);
-        setHasUnsavedChanges(false);
+
+        const totalSeconds = hours * 3600 + minutes * 60 + seconds;
+        onChange(totalSeconds);
       }
-    } else {
-      // Empty input - clear the value
-      onChange("");
-      setHasUnsavedChanges(false);
     }
   };
 

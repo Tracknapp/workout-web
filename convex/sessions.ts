@@ -130,7 +130,7 @@ export const updateSetValues = mutation({
     reps: v.number(),
     weight: v.optional(v.number()),
     weightUnit: v.optional(v.union(v.literal("lbs"), v.literal("kgs"))),
-    time: v.optional(v.string()),
+    time: v.optional(v.number()), // Time in seconds
     distanceUnit: v.optional(v.union(v.literal("km"), v.literal("m"))),
   },
   handler: async (ctx, args) => {

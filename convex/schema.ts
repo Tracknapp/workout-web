@@ -53,7 +53,7 @@ export const RoutineExerciseSet = {
   reps: v.number(),
   weight: v.optional(v.number()), // Optional, only for weight-based exercises (or distance for cardio)
   weightUnit: v.optional(v.union(v.literal("lbs"), v.literal("kgs"))),
-  time: v.optional(v.string()), // Time in hh:mm:ss format for cardio exercises
+  time: v.optional(v.number()), // Time in seconds for cardio exercises
   distanceUnit: v.optional(v.union(v.literal("km"), v.literal("m"))),
 };
 
@@ -88,7 +88,7 @@ export const SessionSet = {
   reps: v.number(),
   weight: v.optional(v.number()), // Weight for strength exercises, distance for cardio
   weightUnit: v.optional(v.union(v.literal("lbs"), v.literal("kgs"))),
-  time: v.optional(v.string()), // Time in hh:mm:ss format for cardio exercises
+  time: v.optional(v.number()), // Time in seconds for cardio exercises
   distanceUnit: v.optional(v.union(v.literal("km"), v.literal("m"))),
   completed: v.boolean(),
   completedAt: v.optional(v.number()), // Unix timestamp when set was completed
