@@ -195,3 +195,18 @@ export const getFilteredExercises = query({
     };
   },
 });
+
+// Get a single exercise by exerciseId (for viewing details)
+export const getExerciseByExerciseId = query({
+  args: {
+    exerciseId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const exercise = await ctx.db
+      .query("exercises")
+      .withIndex("byExerciseId", (q) => q.eq("exerciseId", args.exerciseId))
+      .first();
+
+    return exercise;
+  },
+});

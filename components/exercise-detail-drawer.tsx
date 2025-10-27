@@ -6,6 +6,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import type { ExerciseWithSets } from "./exercise-browser/types";
 
 interface ExerciseDetailDrawerProps {
@@ -19,21 +21,32 @@ export function ExerciseDetailDrawer({
   open,
   onOpenChange,
 }: ExerciseDetailDrawerProps) {
+  // Fetch full exercise details from the database using exerciseId
+  const fullExercise = useQuery(
+    api.exercises.getExerciseByExerciseId,
+    exercise && open ? { exerciseId: exercise.exerciseId } : "skip"
+  );
+
   if (!exercise) return null;
+
+  // Use full exercise data if available, otherwise fall back to the passed exercise
+  const displayExercise = fullExercise || exercise;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="w-full sm:max-w-xl overflow-y-auto p-6">
-        <SheetHeader>
-          <SheetTitle className="capitalize text-2xl">{exercise.name}</SheetTitle>
+      <SheetContent side="right" className="w-full sm:max-w-xl p-0 h-full flex flex-col overflow-hidden">
+        <SheetHeader className="sr-only">
+          <SheetTitle>{displayExercise.name}</SheetTitle>
         </SheetHeader>
-
-        <div className="mt-6 space-y-6">
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-6">
+              <h2 className="capitalize text-2xl font-semibold mb-6">{displayExercise.name}</h2>
+              <div className="space-y-6">
           {/* Exercise GIF */}
           <div className="w-full flex items-center justify-center bg-muted rounded-lg border-2 border-border p-4">
             <img
-              src={exercise.gifUrl}
-              alt={exercise.name}
+              src={displayExercise.gifUrl}
+              alt={displayExercise.name}
               className="max-w-sm w-auto h-auto"
               style={{ imageRendering: 'auto' }}
             />
@@ -45,7 +58,7 @@ export function ExerciseDetailDrawer({
               Target Muscles
             </h3>
             <div className="flex flex-wrap gap-2">
-              {exercise.targetMuscles.map((muscle) => (
+              {displayExercise.targetMuscles.map((muscle) => (
                 <span
                   key={muscle}
                   className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm capitalize"
@@ -57,13 +70,13 @@ export function ExerciseDetailDrawer({
           </div>
 
           {/* Secondary Muscles */}
-          {exercise.secondaryMuscles.length > 0 && (
+          {displayExercise.secondaryMuscles && displayExercise.secondaryMuscles.length > 0 && (
             <div>
               <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-2">
                 Secondary Muscles
               </h3>
               <div className="flex flex-wrap gap-2">
-                {exercise.secondaryMuscles.map((muscle) => (
+                {displayExercise.secondaryMuscles.map((muscle) => (
                   <span
                     key={muscle}
                     className="px-3 py-1 bg-muted text-muted-foreground rounded-full text-sm capitalize"
@@ -76,47 +89,51 @@ export function ExerciseDetailDrawer({
           )}
 
           {/* Equipment */}
-          <div>
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-2">
-              Equipment
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {exercise.equipments.map((equipment) => (
-                <span
-                  key={equipment}
-                  className="px-3 py-1 bg-secondary text-secondary-foreground rounded-full text-sm capitalize"
-                >
-                  {equipment}
-                </span>
-              ))}
+          {displayExercise.equipments && displayExercise.equipments.length > 0 && (
+            <div>
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-2">
+                Equipment
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {displayExercise.equipments.map((equipment) => (
+                  <span
+                    key={equipment}
+                    className="px-3 py-1 bg-secondary text-secondary-foreground rounded-full text-sm capitalize"
+                  >
+                    {equipment}
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Body Parts */}
-          <div>
-            <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-2">
-              Body Parts
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {exercise.bodyParts.map((part) => (
-                <span
-                  key={part}
-                  className="px-3 py-1 bg-accent text-accent-foreground rounded-full text-sm capitalize"
-                >
-                  {part}
-                </span>
-              ))}
+          {displayExercise.bodyParts && displayExercise.bodyParts.length > 0 && (
+            <div>
+              <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-2">
+                Body Parts
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {displayExercise.bodyParts.map((part) => (
+                  <span
+                    key={part}
+                    className="px-3 py-1 bg-accent text-accent-foreground rounded-full text-sm capitalize"
+                  >
+                    {part}
+                  </span>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Instructions */}
-          {exercise.instructions && exercise.instructions.length > 0 && (
+          {displayExercise.instructions && displayExercise.instructions.length > 0 && (
             <div>
               <h3 className="text-sm font-semibold text-muted-foreground uppercase mb-3">
                 Instructions
               </h3>
               <ul className="space-y-3">
-                {exercise.instructions.map((instruction, index) => (
+                {displayExercise.instructions.map((instruction, index) => (
                   <li key={index} className="text-sm leading-relaxed">
                     {instruction}
                   </li>
@@ -124,6 +141,8 @@ export function ExerciseDetailDrawer({
               </ul>
             </div>
           )}
+              </div>
+          </div>
         </div>
       </SheetContent>
     </Sheet>
