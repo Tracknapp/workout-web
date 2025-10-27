@@ -74,6 +74,7 @@ export const startSession = mutation({
           setNumber: set.setNumber,
           reps: set.reps,
           weight: set.weight,
+          weightUnit: set.weightUnit,
           completed: false,
         });
       }
@@ -104,11 +105,13 @@ export const updateSetValues = mutation({
     setId: v.id("sessionSets"),
     reps: v.number(),
     weight: v.optional(v.number()),
+    weightUnit: v.optional(v.union(v.literal("lbs"), v.literal("kgs"))),
   },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.setId, {
       reps: args.reps,
       weight: args.weight,
+      weightUnit: args.weightUnit,
     });
     return { success: true };
   },

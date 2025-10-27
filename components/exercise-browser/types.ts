@@ -20,6 +20,7 @@ export interface ExerciseSet {
   setNumber: number;
   reps: number;
   weight?: number; // Optional, only for weight-based exercises
+  weightUnit?: "lbs" | "kgs"; // Weight unit for this set
   completed: boolean; // Track if set is done
 }
 

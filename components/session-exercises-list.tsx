@@ -22,6 +22,7 @@ interface SessionExercisesListProps {
   ) => void;
   onToggleComplete: (exerciseId: string, setId: string) => void;
   onViewDetails: (exercise: ExerciseWithSets) => void;
+  weightUnit?: "lbs" | "kgs";
 }
 
 export function SessionExercisesList({
@@ -34,6 +35,7 @@ export function SessionExercisesList({
   onUpdateSet,
   onToggleComplete,
   onViewDetails,
+  weightUnit = "lbs",
 }: SessionExercisesListProps) {
   if (exercises.length === 0) {
     return (
@@ -75,6 +77,7 @@ export function SessionExercisesList({
                 }
                 onViewDetails={() => onViewDetails(exercise)}
                 showComplete={true}
+                weightUnit={weightUnit}
               />
             ))}
           </div>

@@ -17,6 +17,7 @@ interface RoutineExerciseCardProps {
   onToggleComplete: (setId: string) => void;
   onViewDetails: () => void;
   showComplete?: boolean; // Show complete checkbox (for workout mode)
+  weightUnit?: "lbs" | "kgs"; // User's preferred weight unit
 }
 
 export function RoutineExerciseCard({
@@ -28,6 +29,7 @@ export function RoutineExerciseCard({
   onToggleComplete,
   onViewDetails,
   showComplete = false,
+  weightUnit = "lbs",
 }: RoutineExerciseCardProps) {
   const {
     attributes,
@@ -128,7 +130,7 @@ export function RoutineExerciseCard({
               {needsWeight && (
                 <div className="w-32">
                   <span className="text-xs font-semibold text-muted-foreground uppercase">
-                    Weight (lbs)
+                    Weight ({weightUnit})
                   </span>
                 </div>
               )}

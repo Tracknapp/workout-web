@@ -161,6 +161,7 @@ export const saveRoutineExercises = mutation({
             setNumber: v.number(),
             reps: v.number(),
             weight: v.optional(v.number()),
+            weightUnit: v.optional(v.union(v.literal("lbs"), v.literal("kgs"))),
           })
         ),
       })
@@ -206,6 +207,7 @@ export const saveRoutineExercises = mutation({
           setNumber: set.setNumber,
           reps: set.reps,
           weight: set.weight,
+          weightUnit: set.weightUnit,
         });
       }
     }

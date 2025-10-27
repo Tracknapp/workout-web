@@ -13,6 +13,7 @@ interface UseSessionUpdatesProps {
     field: "reps" | "weight",
     value: number
   ) => void;
+  weightUnit?: "lbs" | "kgs";
 }
 
 interface UseSessionUpdatesReturn {
@@ -29,6 +30,7 @@ export function useSessionUpdates({
   exercises,
   onToggleComplete,
   onUpdateSet,
+  weightUnit = "lbs",
 }: UseSessionUpdatesProps): UseSessionUpdatesReturn {
   const toggleSetCompletionMutation = useMutation(api.sessions.toggleSetCompletion);
   const updateSetValuesMutation = useMutation(api.sessions.updateSetValues);
@@ -79,6 +81,7 @@ export function useSessionUpdates({
           setId: setId as Id<"sessionSets">,
           reps: field === "reps" ? value : set.reps,
           weight: field === "weight" ? value : set.weight,
+          weightUnit: weightUnit,
         });
       }
     } catch (error) {

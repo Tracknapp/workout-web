@@ -148,7 +148,7 @@ export default function WorkoutHistoryDetail({
                               Reps
                             </th>
                             <th className="text-left py-2 px-2 font-medium text-muted-foreground">
-                              Weight
+                              Weight ({exercise.sets[0]?.weightUnit || "lbs"})
                             </th>
                             <th className="text-center py-2 px-2 font-medium text-muted-foreground">
                               Done
@@ -161,7 +161,7 @@ export default function WorkoutHistoryDetail({
                               <td className="py-2 px-2">{set.setNumber}</td>
                               <td className="py-2 px-2">{set.reps}</td>
                               <td className="py-2 px-2">
-                                {set.weight ? `${set.weight} kg` : "-"}
+                                {set.weight ? `${set.weight}` : "-"}
                               </td>
                               <td className="py-2 px-2 text-center">
                                 {set.completed ? (

@@ -35,6 +35,10 @@ export default function RoutineDetail({
   const updateRoutine = useMutation(api.routines.updateRoutine);
   const saveRoutineExercises = useMutation(api.routines.saveRoutineExercises);
 
+  // Get user's preferred weight unit
+  const userProfile = useQuery(api.user.getUserProfile);
+  const weightUnit = userProfile?.weightUnit || "lbs";
+
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [routineName, setRoutineName] = useState("");
   const [selectedExerciseForDetails, setSelectedExerciseForDetails] = useState<ExerciseWithSets | null>(null);
@@ -118,6 +122,7 @@ export default function RoutineDetail({
           setNumber: set.setNumber,
           reps: set.reps,
           weight: set.weight,
+          weightUnit,
         })),
       }));
 
@@ -201,6 +206,7 @@ export default function RoutineDetail({
                       handleToggleComplete(exercise._id, setId)
                     }
                     onViewDetails={() => handleViewExerciseDetails(exercise)}
+                    weightUnit={weightUnit}
                   />
                 ))}
               </div>

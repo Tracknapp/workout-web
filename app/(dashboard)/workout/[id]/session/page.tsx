@@ -1,7 +1,7 @@
 "use client";
 
 import React, { use, useState, useEffect } from "react";
-import { useMutation } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { SessionExercisesList } from "@/components/session-exercises-list";
 import { ExerciseDetailDrawer } from "@/components/exercise-detail-drawer";
@@ -42,6 +42,10 @@ export default function WorkoutSession({
   const { id } = use(params);
   const routineId = id as Id<"routines">;
 
+  // Get user's preferred weight unit
+  const userProfile = useQuery(api.user.getUserProfile);
+  const weightUnit = userProfile?.weightUnit || "lbs";
+
   const [selectedExerciseForDetails, setSelectedExerciseForDetails] =
     useState<ExerciseWithSets | null>(null);
   const [isDetailDrawerOpen, setIsDetailDrawerOpen] = useState(false);
@@ -79,6 +83,7 @@ export default function WorkoutSession({
     exercises: selectedExercises,
     onToggleComplete: toggleCompleteLocal,
     onUpdateSet: updateSetLocal,
+    weightUnit,
   });
 
   const { sensors, handleDragEnd } = useDragAndDrop(setSelectedExercises);
@@ -305,6 +310,7 @@ export default function WorkoutSession({
         onRemoveSet={handleRemoveSet}
         onUpdateSet={handleUpdateSet}
         onToggleComplete={handleToggleComplete}
+        weightUnit={weightUnit}
         onViewDetails={handleViewExerciseDetails}
       />
 

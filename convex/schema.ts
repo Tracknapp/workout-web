@@ -51,6 +51,7 @@ export const RoutineExerciseSet = {
   setNumber: v.number(),
   reps: v.number(),
   weight: v.optional(v.number()), // Optional, only for weight-based exercises
+  weightUnit: v.optional(v.union(v.literal("lbs"), v.literal("kgs"))),
 };
 
 // Workout Session schemas - independent of routines for historical tracking
@@ -83,6 +84,7 @@ export const SessionSet = {
   setNumber: v.number(),
   reps: v.number(),
   weight: v.optional(v.number()),
+  weightUnit: v.optional(v.union(v.literal("lbs"), v.literal("kgs"))),
   completed: v.boolean(),
   completedAt: v.optional(v.number()), // Unix timestamp when set was completed
 };
