@@ -25,3 +25,12 @@ export function requiresWeight(exercise: Exercise): boolean {
     WEIGHT_EQUIPMENT.includes(equipment.toLowerCase())
   );
 }
+
+/**
+ * Determines if an exercise is cardio-based (should track distance instead of weight)
+ */
+export function isCardioExercise(exercise: Exercise): boolean {
+  return exercise.targetMuscles.some((muscle) =>
+    muscle.toLowerCase() === "cardio"
+  );
+}

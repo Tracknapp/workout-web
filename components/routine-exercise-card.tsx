@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Trash2, TrashIcon, Check, GripVertical } from "lucide-react";
 import type { ExerciseWithSets } from "./exercise-browser/types";
-import { requiresWeight } from "./exercise-browser/utils";
+import { requiresWeight, isCardioExercise } from "./exercise-browser/utils";
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
@@ -46,6 +46,8 @@ export function RoutineExerciseCard({
   };
 
   const needsWeight = requiresWeight(exercise);
+  const isCardio = isCardioExercise(exercise);
+  const showWeightOrDistance = needsWeight || isCardio;
 
   return (
     <div
@@ -124,13 +126,13 @@ export function RoutineExerciseCard({
               </span>
               <div className="w-32">
                 <span className="text-xs font-semibold text-muted-foreground uppercase">
-                  Reps
+                  {isCardio ? "Duration (min)" : "Reps"}
                 </span>
               </div>
-              {needsWeight && (
+              {showWeightOrDistance && (
                 <div className="w-32">
                   <span className="text-xs font-semibold text-muted-foreground uppercase">
-                    Weight ({weightUnit})
+                    {isCardio ? "Distance (km)" : `Weight (${weightUnit})`}
                   </span>
                 </div>
               )}
@@ -145,8 +147,8 @@ export function RoutineExerciseCard({
             {exercise.sets.map((set, index) => {
               // Validate if set can be completed
               const hasReps = set.reps > 0;
-              const hasWeight = needsWeight ? (set.weight ?? 0) > 0 : true;
-              const isValid = hasReps && hasWeight;
+              const hasWeightOrDistance = showWeightOrDistance ? (set.weight ?? 0) > 0 : true;
+              const isValid = hasReps && hasWeightOrDistance;
 
               return (
                 <div
@@ -161,7 +163,7 @@ export function RoutineExerciseCard({
                     {index + 1}
                   </span>
 
-                  {/* Reps Input */}
+                  {/* Reps/Duration Input */}
                   <Input
                     type="number"
                     placeholder="0"
@@ -177,8 +179,8 @@ export function RoutineExerciseCard({
                     min="0"
                   />
 
-                  {/* Weight Input (conditional) */}
-                  {needsWeight && (
+                  {/* Weight/Distance Input (conditional) */}
+                  {showWeightOrDistance && (
                     <Input
                       type="number"
                       placeholder="0"
@@ -192,6 +194,7 @@ export function RoutineExerciseCard({
                       }
                       className="h-8 w-32"
                       min="0"
+                      step={isCardio ? "0.1" : "1"}
                     />
                   )}
 
@@ -207,8 +210,12 @@ export function RoutineExerciseCard({
                         className="h-8 w-8 p-0"
                         title={
                           !isValid && !set.completed
-                            ? needsWeight
-                              ? "Enter reps and weight to complete"
+                            ? showWeightOrDistance
+                              ? isCardio
+                                ? "Enter duration and distance to complete"
+                                : "Enter reps and weight to complete"
+                              : isCardio
+                              ? "Enter duration to complete"
                               : "Enter reps to complete"
                             : set.completed
                             ? "Mark as incomplete"
