@@ -46,7 +46,6 @@ export function TimeInput({
     // Allow empty input
     if (input === "") {
       setDisplayValue("");
-      onChange("");
       return;
     }
 
@@ -55,11 +54,10 @@ export function TimeInput({
 
     if (digits.length === 0) {
       setDisplayValue("");
-      onChange("");
       return;
     }
 
-    // Format the digits
+    // Format the digits for display only
     let formatted = "";
     if (digits.length <= 2) {
       formatted = digits;
@@ -78,7 +76,6 @@ export function TimeInput({
       const seconds = digits.slice(4, 6);
 
       // Validate time values
-      const h = parseInt(hours);
       const m = parseInt(minutes);
       const s = parseInt(seconds);
 
@@ -88,17 +85,23 @@ export function TimeInput({
       }
 
       onChange(`${hours}:${minutes}:${seconds}`);
-    } else if (digits.length < 6) {
-      // Auto-complete with zeros when blurring or use current digits
-      onChange(formatted);
     }
+    // Don't call onChange for incomplete times during typing
   };
 
   const handleBlur = () => {
     if (displayValue && displayValue.replace(/\D/g, "").length > 0) {
-      const formatted = formatTime(displayValue);
-      setDisplayValue(formatted);
-      onChange(formatted);
+      const digits = displayValue.replace(/\D/g, "");
+
+      // Only save if we have at least some input
+      if (digits.length > 0) {
+        const formatted = formatTime(displayValue);
+        setDisplayValue(formatted);
+        onChange(formatted);
+      }
+    } else {
+      // Empty input
+      onChange("");
     }
   };
 
