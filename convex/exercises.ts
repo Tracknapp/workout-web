@@ -96,8 +96,7 @@ export const getFilteredExercises = query({
       exercises = exercises.filter((exercise) =>
         args.muscles!.some(
           (muscle) =>
-            exercise.targetMuscles.includes(muscle) ||
-            exercise.secondaryMuscles.includes(muscle)
+            exercise.targetMuscles.includes(muscle)
         )
       );
     }
