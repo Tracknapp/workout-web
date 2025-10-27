@@ -85,6 +85,7 @@ export default function RoutineDetail({
               setNumber: set.setNumber,
               reps: set.reps,
               weight: set.weight,
+              time: set.time, // Include time for cardio exercises
               completed: false, // Backend doesn't store completed state for routines
             })),
           };

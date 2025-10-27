@@ -109,6 +109,7 @@ export function useWorkoutSession({
               setNumber: set.setNumber,
               reps: set.reps,
               weight: set.weight,
+              time: set.time, // Include time for cardio exercises
               completed: set.completed,
             })),
           };
@@ -137,6 +138,7 @@ export function useWorkoutSession({
                 setNumber: set.setNumber,
                 reps: set.reps,
                 weight: set.weight,
+                time: set.time, // Include time for cardio exercises
                 completed: false,
               })),
             };

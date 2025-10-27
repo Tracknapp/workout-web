@@ -131,13 +131,16 @@ export default function WorkoutSession({
   });
 
   const { sensors, handleDragEnd } = useDragAndDrop(setSelectedExercises);
+  const [hasInitiallyLoaded, setHasInitiallyLoaded] = useState(false);
 
-  // Sync exercises from session hook to selectedExercises
+  // Sync exercises from session hook to selectedExercises ONLY on initial load
+  // Don't sync on every update to avoid overwriting optimistic updates
   useEffect(() => {
-    if (exercises.length > 0) {
+    if (exercises.length > 0 && !hasInitiallyLoaded) {
       setSelectedExercises(exercises);
+      setHasInitiallyLoaded(true);
     }
-  }, [exercises, setSelectedExercises]);
+  }, [exercises, setSelectedExercises, hasInitiallyLoaded]);
 
   const handleAddExercisesToSession = (exercises: Exercise[]) => {
     addExercises(exercises);
