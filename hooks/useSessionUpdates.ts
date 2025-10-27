@@ -50,14 +50,24 @@ export function useSessionUpdates({
     onToggleComplete(exerciseId, setId);
 
     try {
-      // Save new completion status to database
+      // Save ALL set values to database (reps, weight, time, etc.) along with completion status
+      await updateSetValuesMutation({
+        setId: setId as Id<"sessionSets">,
+        reps: set.reps || 0,
+        weight: set.weight,
+        weightUnit: weightUnit,
+        time: set.time,
+        distanceUnit: distanceUnit,
+      });
+
+      // Then save completion status
       await toggleSetCompletionMutation({
         setId: setId as Id<"sessionSets">,
         completed: newCompletedStatus,
       });
     } catch (error) {
       console.error("Error toggling set completion:", error);
-      toast.error("Failed to save set completion");
+      toast.error("Failed to save set");
       // Revert local state on error
       onToggleComplete(exerciseId, setId);
     }
@@ -69,30 +79,9 @@ export function useSessionUpdates({
     field: "reps" | "weight" | "time",
     value: number | string
   ) => {
-    try {
-      // Find the set to get current values BEFORE updating
-      const exercise = exercises.find((ex) => ex._id === exerciseId);
-      const set = exercise?.sets.find((s) => s.id === setId);
-
-      if (!set) return;
-
-      // Update local state FIRST (optimistic update)
-      onUpdateSet(exerciseId, setId, field, value);
-
-      // Then save to database in background
-      await updateSetValuesMutation({
-        setId: setId as Id<"sessionSets">,
-        reps: field === "reps" ? (value as number) : (set.reps || 0),
-        weight: field === "weight" ? (value as number) : set.weight,
-        weightUnit: weightUnit,
-        time: field === "time" ? (value as number) : set.time,
-        distanceUnit: distanceUnit,
-      });
-    } catch (error) {
-      console.error("Error updating set:", error);
-      toast.error("Failed to save set update");
-      // Could revert local state here if needed
-    }
+    // Only update local state - NO database call
+    // Database save happens when user clicks checkmark to complete the set
+    onUpdateSet(exerciseId, setId, field, value);
   };
 
   return {
