@@ -81,7 +81,7 @@ export function useSessionUpdates({
           reps: field === "reps" ? (value as number) : (set.reps || 0),
           weight: field === "weight" ? (value as number) : set.weight,
           weightUnit: weightUnit,
-          time: field === "time" ? (value as string) : set.time,
+          time: field === "time" ? (value as number) : set.time,
           distanceUnit: distanceUnit,
         });
       }
