@@ -60,8 +60,8 @@ export function useRoutineExercises() {
   const handleUpdateSet = (
     exerciseId: string,
     setId: string,
-    field: "reps" | "weight",
-    value: number
+    field: "reps" | "weight" | "time",
+    value: number | string
   ) => {
     setSelectedExercises((prev) =>
       prev.map((ex) => {

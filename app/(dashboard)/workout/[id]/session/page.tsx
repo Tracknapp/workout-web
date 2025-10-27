@@ -43,9 +43,10 @@ export default function WorkoutSession({
   const { id } = use(params);
   const routineId = id as Id<"routines">;
 
-  // Get user's preferred weight unit
+  // Get user's preferred weight and distance units
   const userProfile = useQuery(api.user.getUserProfile);
   const weightUnit = userProfile?.weightUnit || "lbs";
+  const distanceUnit = userProfile?.distanceUnit || "km";
 
   const [selectedExerciseForDetails, setSelectedExerciseForDetails] =
     useState<ExerciseWithSets | null>(null);
@@ -86,6 +87,7 @@ export default function WorkoutSession({
     onToggleComplete: toggleCompleteLocal,
     onUpdateSet: updateSetLocal,
     weightUnit,
+    distanceUnit,
   });
 
   const { sensors, handleDragEnd } = useDragAndDrop(setSelectedExercises);
@@ -316,6 +318,7 @@ export default function WorkoutSession({
         onUpdateSet={handleUpdateSet}
         onToggleComplete={handleToggleComplete}
         weightUnit={weightUnit}
+        distanceUnit={distanceUnit}
         onViewDetails={handleViewExerciseDetails}
       />
 

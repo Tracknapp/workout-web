@@ -9,6 +9,7 @@ export const User = {
   profilePicture: v.optional(v.string()),
   gender: v.optional(v.string()),
   weightUnit: v.optional(v.union(v.literal("lbs"), v.literal("kgs"))),
+  distanceUnit: v.optional(v.union(v.literal("km"), v.literal("m"))),
 };
 
 export const BodyPart = {
@@ -50,8 +51,10 @@ export const RoutineExerciseSet = {
   routineExerciseId: v.id("routineExercises"),
   setNumber: v.number(),
   reps: v.number(),
-  weight: v.optional(v.number()), // Optional, only for weight-based exercises
+  weight: v.optional(v.number()), // Optional, only for weight-based exercises (or distance for cardio)
   weightUnit: v.optional(v.union(v.literal("lbs"), v.literal("kgs"))),
+  time: v.optional(v.string()), // Time in hh:mm:ss format for cardio exercises
+  distanceUnit: v.optional(v.union(v.literal("km"), v.literal("m"))),
 };
 
 // Workout Session schemas - independent of routines for historical tracking
@@ -83,8 +86,10 @@ export const SessionSet = {
   sessionExerciseId: v.id("sessionExercises"),
   setNumber: v.number(),
   reps: v.number(),
-  weight: v.optional(v.number()),
+  weight: v.optional(v.number()), // Weight for strength exercises, distance for cardio
   weightUnit: v.optional(v.union(v.literal("lbs"), v.literal("kgs"))),
+  time: v.optional(v.string()), // Time in hh:mm:ss format for cardio exercises
+  distanceUnit: v.optional(v.union(v.literal("km"), v.literal("m"))),
   completed: v.boolean(),
   completedAt: v.optional(v.number()), // Unix timestamp when set was completed
 };

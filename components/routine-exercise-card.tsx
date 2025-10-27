@@ -13,11 +13,12 @@ interface RoutineExerciseCardProps {
   onRemoveExercise: () => void;
   onAddSet: () => void;
   onRemoveSet: (setId: string) => void;
-  onUpdateSet: (setId: string, field: "reps" | "weight", value: number) => void;
+  onUpdateSet: (setId: string, field: "reps" | "weight" | "time", value: number | string) => void;
   onToggleComplete: (setId: string) => void;
   onViewDetails: () => void;
   showComplete?: boolean; // Show complete checkbox (for workout mode)
   weightUnit?: "lbs" | "kgs"; // User's preferred weight unit
+  distanceUnit?: "km" | "m"; // User's preferred distance unit
 }
 
 export function RoutineExerciseCard({
@@ -30,6 +31,7 @@ export function RoutineExerciseCard({
   onViewDetails,
   showComplete = false,
   weightUnit = "lbs",
+  distanceUnit = "km",
 }: RoutineExerciseCardProps) {
   const {
     attributes,
@@ -124,15 +126,23 @@ export function RoutineExerciseCard({
               <span className="text-xs font-semibold text-muted-foreground uppercase w-8 text-center">
                 Set
               </span>
-              <div className="w-32">
-                <span className="text-xs font-semibold text-muted-foreground uppercase">
-                  {isCardio ? "Duration (min)" : "Reps"}
-                </span>
-              </div>
+              {isCardio ? (
+                <div className="w-32">
+                  <span className="text-xs font-semibold text-muted-foreground uppercase">
+                    Time (hh:mm:ss)
+                  </span>
+                </div>
+              ) : (
+                <div className="w-32">
+                  <span className="text-xs font-semibold text-muted-foreground uppercase">
+                    Reps
+                  </span>
+                </div>
+              )}
               {showWeightOrDistance && (
                 <div className="w-32">
                   <span className="text-xs font-semibold text-muted-foreground uppercase">
-                    {isCardio ? "Distance (km)" : `Weight (${weightUnit})`}
+                    {isCardio ? `Distance (${distanceUnit})` : `Weight (${weightUnit})`}
                   </span>
                 </div>
               )}
@@ -146,9 +156,9 @@ export function RoutineExerciseCard({
             {/* Sets Rows */}
             {exercise.sets.map((set, index) => {
               // Validate if set can be completed
-              const hasReps = set.reps > 0;
+              const hasTimeOrReps = isCardio ? (set.time && set.time.length > 0) : set.reps > 0;
               const hasWeightOrDistance = showWeightOrDistance ? (set.weight ?? 0) > 0 : true;
-              const isValid = hasReps && hasWeightOrDistance;
+              const isValid = hasTimeOrReps && hasWeightOrDistance;
 
               return (
                 <div
@@ -163,21 +173,38 @@ export function RoutineExerciseCard({
                     {index + 1}
                   </span>
 
-                  {/* Reps/Duration Input */}
-                  <Input
-                    type="number"
-                    placeholder="0"
-                    value={set.reps || ""}
-                    onChange={(e) =>
-                      onUpdateSet(
-                        set.id,
-                        "reps",
-                        parseInt(e.target.value) || 0
-                      )
-                    }
-                    className="h-8 w-32"
-                    min="0"
-                  />
+                  {/* Time/Reps Input */}
+                  {isCardio ? (
+                    <Input
+                      type="text"
+                      placeholder="00:00:00"
+                      value={set.time || ""}
+                      onChange={(e) =>
+                        onUpdateSet(
+                          set.id,
+                          "time",
+                          e.target.value
+                        )
+                      }
+                      className="h-8 w-32"
+                      pattern="[0-9]{2}:[0-9]{2}:[0-9]{2}"
+                    />
+                  ) : (
+                    <Input
+                      type="number"
+                      placeholder="0"
+                      value={set.reps || ""}
+                      onChange={(e) =>
+                        onUpdateSet(
+                          set.id,
+                          "reps",
+                          parseInt(e.target.value) || 0
+                        )
+                      }
+                      className="h-8 w-32"
+                      min="0"
+                    />
+                  )}
 
                   {/* Weight/Distance Input (conditional) */}
                   {showWeightOrDistance && (
@@ -212,10 +239,10 @@ export function RoutineExerciseCard({
                           !isValid && !set.completed
                             ? showWeightOrDistance
                               ? isCardio
-                                ? "Enter duration and distance to complete"
+                                ? "Enter time and distance to complete"
                                 : "Enter reps and weight to complete"
                               : isCardio
-                              ? "Enter duration to complete"
+                              ? "Enter time to complete"
                               : "Enter reps to complete"
                             : set.completed
                             ? "Mark as incomplete"

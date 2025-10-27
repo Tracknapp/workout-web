@@ -26,6 +26,7 @@ export default function Settings() {
 
   const [gender, setGender] = useState("");
   const [weightUnit, setWeightUnit] = useState<"lbs" | "kgs">("lbs");
+  const [distanceUnit, setDistanceUnit] = useState<"km" | "m">("km");
   const [isSaving, setIsSaving] = useState(false);
 
   // Initialize form values when user profile loads
@@ -33,6 +34,7 @@ export default function Settings() {
     if (userProfile) {
       setGender(userProfile.gender || "");
       setWeightUnit(userProfile.weightUnit || "lbs");
+      setDistanceUnit(userProfile.distanceUnit || "km");
     }
   }, [userProfile]);
 
@@ -42,6 +44,7 @@ export default function Settings() {
       await updatePreferences({
         gender: gender || undefined,
         weightUnit,
+        distanceUnit,
       });
       toast.success("Settings saved successfully!");
     } catch (error) {
@@ -56,7 +59,8 @@ export default function Settings() {
     if (!userProfile) return false;
     return (
       gender !== (userProfile.gender || "") ||
-      weightUnit !== (userProfile.weightUnit || "lbs")
+      weightUnit !== (userProfile.weightUnit || "lbs") ||
+      distanceUnit !== (userProfile.distanceUnit || "km")
     );
   };
 
@@ -176,6 +180,22 @@ export default function Settings() {
               </Select>
               <p className="text-xs text-muted-foreground">
                 This will be used for all weight inputs in your workouts
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="distanceUnit">Preferred Distance Unit</Label>
+              <Select value={distanceUnit} onValueChange={(value: "km" | "m") => setDistanceUnit(value)}>
+                <SelectTrigger id="distanceUnit" className="w-full">
+                  <SelectValue placeholder="Select distance unit" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="km">Kilometers (km)</SelectItem>
+                  <SelectItem value="m">Meters (m)</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                This will be used for distance tracking in cardio exercises
               </p>
             </div>
 

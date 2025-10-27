@@ -162,6 +162,8 @@ export const saveRoutineExercises = mutation({
             reps: v.number(),
             weight: v.optional(v.number()),
             weightUnit: v.optional(v.union(v.literal("lbs"), v.literal("kgs"))),
+            time: v.optional(v.string()),
+            distanceUnit: v.optional(v.union(v.literal("km"), v.literal("m"))),
           })
         ),
       })
@@ -208,6 +210,8 @@ export const saveRoutineExercises = mutation({
           reps: set.reps,
           weight: set.weight,
           weightUnit: set.weightUnit,
+          time: set.time,
+          distanceUnit: set.distanceUnit,
         });
       }
     }

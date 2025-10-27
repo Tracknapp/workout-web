@@ -19,8 +19,10 @@ export interface ExerciseSet {
   id: string; // Local ID for frontend
   setNumber: number;
   reps: number;
-  weight?: number; // Optional, only for weight-based exercises
+  weight?: number; // Optional, only for weight-based exercises (or distance for cardio)
   weightUnit?: "lbs" | "kgs"; // Weight unit for this set
+  time?: string; // Time in hh:mm:ss format for cardio exercises
+  distanceUnit?: "km" | "m"; // Distance unit for cardio exercises
   completed: boolean; // Track if set is done
 }
 

@@ -17,12 +17,13 @@ interface SessionExercisesListProps {
   onUpdateSet: (
     exerciseId: string,
     setId: string,
-    field: "reps" | "weight",
-    value: number
+    field: "reps" | "weight" | "time",
+    value: number | string
   ) => void;
   onToggleComplete: (exerciseId: string, setId: string) => void;
   onViewDetails: (exercise: ExerciseWithSets) => void;
   weightUnit?: "lbs" | "kgs";
+  distanceUnit?: "km" | "m";
 }
 
 export function SessionExercisesList({
@@ -36,6 +37,7 @@ export function SessionExercisesList({
   onToggleComplete,
   onViewDetails,
   weightUnit = "lbs",
+  distanceUnit = "km",
 }: SessionExercisesListProps) {
   if (exercises.length === 0) {
     return (
@@ -78,6 +80,7 @@ export function SessionExercisesList({
                 onViewDetails={() => onViewDetails(exercise)}
                 showComplete={true}
                 weightUnit={weightUnit}
+                distanceUnit={distanceUnit}
               />
             ))}
           </div>

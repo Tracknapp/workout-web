@@ -71,6 +71,7 @@ export const updateUserPreferences = mutation({
   args: {
     gender: v.optional(v.string()),
     weightUnit: v.optional(v.union(v.literal("lbs"), v.literal("kgs"))),
+    distanceUnit: v.optional(v.union(v.literal("km"), v.literal("m"))),
   },
   handler: async (ctx, args) => {
     const userId = await getCurrentUserId(ctx);
@@ -81,6 +82,7 @@ export const updateUserPreferences = mutation({
     const updates: {
       gender?: string;
       weightUnit?: "lbs" | "kgs";
+      distanceUnit?: "km" | "m";
     } = {};
 
     if (args.gender !== undefined) {
@@ -88,6 +90,9 @@ export const updateUserPreferences = mutation({
     }
     if (args.weightUnit !== undefined) {
       updates.weightUnit = args.weightUnit;
+    }
+    if (args.distanceUnit !== undefined) {
+      updates.distanceUnit = args.distanceUnit;
     }
 
     await ctx.db.patch(userId, updates);

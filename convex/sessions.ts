@@ -75,6 +75,8 @@ export const startSession = mutation({
           reps: set.reps,
           weight: set.weight,
           weightUnit: set.weightUnit,
+          time: set.time,
+          distanceUnit: set.distanceUnit,
           completed: false,
         });
       }
@@ -99,19 +101,23 @@ export const toggleSetCompletion = mutation({
   },
 });
 
-// Update set values (reps/weight)
+// Update set values (reps/weight/time)
 export const updateSetValues = mutation({
   args: {
     setId: v.id("sessionSets"),
     reps: v.number(),
     weight: v.optional(v.number()),
     weightUnit: v.optional(v.union(v.literal("lbs"), v.literal("kgs"))),
+    time: v.optional(v.string()),
+    distanceUnit: v.optional(v.union(v.literal("km"), v.literal("m"))),
   },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.setId, {
       reps: args.reps,
       weight: args.weight,
       weightUnit: args.weightUnit,
+      time: args.time,
+      distanceUnit: args.distanceUnit,
     });
     return { success: true };
   },

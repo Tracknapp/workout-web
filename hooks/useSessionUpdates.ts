@@ -10,10 +10,11 @@ interface UseSessionUpdatesProps {
   onUpdateSet: (
     exerciseId: string,
     setId: string,
-    field: "reps" | "weight",
-    value: number
+    field: "reps" | "weight" | "time",
+    value: number | string
   ) => void;
   weightUnit?: "lbs" | "kgs";
+  distanceUnit?: "km" | "m";
 }
 
 interface UseSessionUpdatesReturn {
@@ -21,8 +22,8 @@ interface UseSessionUpdatesReturn {
   handleUpdateSet: (
     exerciseId: string,
     setId: string,
-    field: "reps" | "weight",
-    value: number
+    field: "reps" | "weight" | "time",
+    value: number | string
   ) => Promise<void>;
 }
 
@@ -31,6 +32,7 @@ export function useSessionUpdates({
   onToggleComplete,
   onUpdateSet,
   weightUnit = "lbs",
+  distanceUnit = "km",
 }: UseSessionUpdatesProps): UseSessionUpdatesReturn {
   const toggleSetCompletionMutation = useMutation(api.sessions.toggleSetCompletion);
   const updateSetValuesMutation = useMutation(api.sessions.updateSetValues);
@@ -64,8 +66,8 @@ export function useSessionUpdates({
   const handleUpdateSet = async (
     exerciseId: string,
     setId: string,
-    field: "reps" | "weight",
-    value: number
+    field: "reps" | "weight" | "time",
+    value: number | string
   ) => {
     // Update local state first
     onUpdateSet(exerciseId, setId, field, value);
@@ -76,12 +78,14 @@ export function useSessionUpdates({
       const set = exercise?.sets.find((s) => s.id === setId);
 
       if (set) {
-        // Update in database with both values
+        // Update in database with all values
         await updateSetValuesMutation({
           setId: setId as Id<"sessionSets">,
-          reps: field === "reps" ? value : set.reps,
-          weight: field === "weight" ? value : set.weight,
+          reps: field === "reps" ? (value as number) : set.reps,
+          weight: field === "weight" ? (value as number) : set.weight,
           weightUnit: weightUnit,
+          time: field === "time" ? (value as string) : set.time,
+          distanceUnit: distanceUnit,
         });
       }
     } catch (error) {
