@@ -1,6 +1,71 @@
 import { query } from "./_generated/server";
 import { v } from "convex/values";
 
+// Helper function to calculate Levenshtein distance for fuzzy matching
+function levenshteinDistance(str1: string, str2: string): number {
+  const len1 = str1.length;
+  const len2 = str2.length;
+  const matrix: number[][] = [];
+
+  // Initialize matrix
+  for (let i = 0; i <= len1; i++) {
+    matrix[i] = [i];
+  }
+  for (let j = 0; j <= len2; j++) {
+    matrix[0][j] = j;
+  }
+
+  // Fill matrix
+  for (let i = 1; i <= len1; i++) {
+    for (let j = 1; j <= len2; j++) {
+      const cost = str1[i - 1] === str2[j - 1] ? 0 : 1;
+      matrix[i][j] = Math.min(
+        matrix[i - 1][j] + 1, // deletion
+        matrix[i][j - 1] + 1, // insertion
+        matrix[i - 1][j - 1] + cost // substitution
+      );
+    }
+  }
+
+  return matrix[len1][len2];
+}
+
+// Helper function to check if search query fuzzy matches the text
+function fuzzyMatch(text: string, query: string): boolean {
+  const textLower = text.toLowerCase();
+  const queryLower = query.toLowerCase();
+
+  // Exact substring match (highest priority)
+  if (textLower.includes(queryLower)) {
+    return true;
+  }
+
+  // Split text into words and check each word
+  const words = textLower.split(/\s+/);
+
+  for (const word of words) {
+    // Allow 1 character difference for words up to 5 chars
+    // Allow 2 character difference for words 6-10 chars
+    // Allow 3 character difference for words 11+ chars
+    const maxDistance =
+      queryLower.length <= 5 ? 1 :
+      queryLower.length <= 10 ? 2 : 3;
+
+    const distance = levenshteinDistance(word, queryLower);
+
+    if (distance <= maxDistance) {
+      return true;
+    }
+
+    // Also check if query is a substring of the word (for partial matches)
+    if (word.includes(queryLower) || queryLower.includes(word)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 // Get all exercises
 export const getAllExercises = query({
   args: {},
@@ -111,9 +176,9 @@ export const getFilteredExercises = query({
 
     // Apply search filter (fuzzy search on exercise name)
     if (args.search && args.search.trim().length > 0) {
-      const searchLower = args.search.toLowerCase().trim();
+      const searchQuery = args.search.trim();
       exercises = exercises.filter((exercise) =>
-        exercise.name.toLowerCase().includes(searchLower)
+        fuzzyMatch(exercise.name, searchQuery)
       );
     }
 
