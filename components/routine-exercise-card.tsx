@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TimeInput } from "@/components/time-input";
 import { DistanceInput } from "@/components/distance-input";
+import { WeightInput } from "@/components/weight-input";
 import { Plus, Trash2, TrashIcon, Check, GripVertical } from "lucide-react";
 import type { ExerciseWithSets } from "./exercise-browser/types";
 import { requiresWeight, isCardioExercise } from "./exercise-browser/utils";
@@ -226,21 +227,18 @@ export function RoutineExerciseCard({
                           className="h-8 w-32"
                         />
                       ) : (
-                        <Input
-                          type="number"
+                        <WeightInput
                           placeholder="0"
-                          value={set.weight || ""}
-                          onChange={(e) =>
+                          value={set.weight}
+                          onChange={(value) =>
                             onUpdateSet(
                               exercise._id,
                               set.id,
                               "weight",
-                              parseInt(e.target.value) || 0
+                              value
                             )
                           }
                           className="h-8 w-32"
-                          min="0"
-                          step="1"
                         />
                       )}
                     </>
