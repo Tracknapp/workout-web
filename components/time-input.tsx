@@ -17,9 +17,11 @@ export function TimeInput({
   placeholder = "00:00:00",
 }: TimeInputProps) {
   const [displayValue, setDisplayValue] = useState(value || "");
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   useEffect(() => {
     setDisplayValue(value || "");
+    setHasUnsavedChanges(false);
   }, [value]);
 
   const formatTime = (input: string): string => {
@@ -46,6 +48,7 @@ export function TimeInput({
     // Allow empty input
     if (input === "") {
       setDisplayValue("");
+      setHasUnsavedChanges(true);
       return;
     }
 
@@ -54,6 +57,7 @@ export function TimeInput({
 
     if (digits.length === 0) {
       setDisplayValue("");
+      setHasUnsavedChanges(true);
       return;
     }
 
@@ -68,6 +72,7 @@ export function TimeInput({
     }
 
     setDisplayValue(formatted);
+    setHasUnsavedChanges(true);
 
     // Only call onChange with fully formatted time (6 digits)
     if (digits.length === 6) {
@@ -85,23 +90,46 @@ export function TimeInput({
       }
 
       onChange(`${hours}:${minutes}:${seconds}`);
+      setHasUnsavedChanges(false);
     }
     // Don't call onChange for incomplete times during typing
   };
 
   const handleBlur = () => {
+    // Only process if there are unsaved changes
+    if (!hasUnsavedChanges) {
+      return;
+    }
+
     if (displayValue && displayValue.replace(/\D/g, "").length > 0) {
       const digits = displayValue.replace(/\D/g, "");
 
       // Only save if we have at least some input
       if (digits.length > 0) {
         const formatted = formatTime(displayValue);
+
+        // Validate the formatted time before saving
+        const parts = formatted.split(":");
+        const hours = parseInt(parts[0] || "0");
+        const minutes = parseInt(parts[1] || "0");
+        const seconds = parseInt(parts[2] || "0");
+
+        // Check if time is valid (minutes and seconds < 60)
+        if (minutes >= 60 || seconds >= 60) {
+          // Invalid time - show original valid value or empty
+          setDisplayValue(value || "");
+          setHasUnsavedChanges(false);
+          return;
+        }
+
         setDisplayValue(formatted);
         onChange(formatted);
+        setHasUnsavedChanges(false);
       }
     } else {
-      // Empty input
+      // Empty input - clear the value
       onChange("");
+      setHasUnsavedChanges(false);
     }
   };
 

@@ -86,6 +86,28 @@ export const startSession = mutation({
   },
 });
 
+// Add a new set to a session exercise
+export const addSetToExercise = mutation({
+  args: {
+    sessionExerciseId: v.id("sessionExercises"),
+    setNumber: v.number(),
+  },
+  handler: async (ctx, args) => {
+    const setId = await ctx.db.insert("sessionSets", {
+      sessionExerciseId: args.sessionExerciseId,
+      setNumber: args.setNumber,
+      reps: 0,
+      weight: undefined,
+      weightUnit: undefined,
+      time: undefined,
+      distanceUnit: undefined,
+      completed: false,
+    });
+
+    return setId;
+  },
+});
+
 // Update a set's completion status
 export const toggleSetCompletion = mutation({
   args: {

@@ -71,11 +71,11 @@ export function SessionExercisesList({
                 onRemoveExercise={() => onRemoveExercise(exercise._id)}
                 onAddSet={() => onAddSet(exercise._id)}
                 onRemoveSet={(setId) => onRemoveSet(exercise._id, setId)}
-                onUpdateSet={(setId, field, value) =>
-                  onUpdateSet(exercise._id, setId, field, value)
+                onUpdateSet={(exerciseId, setId, field, value) =>
+                  onUpdateSet(exerciseId, setId, field, value)
                 }
-                onToggleComplete={(setId) =>
-                  onToggleComplete(exercise._id, setId)
+                onToggleComplete={(exerciseId, setId) =>
+                  onToggleComplete(exerciseId, setId)
                 }
                 onViewDetails={() => onViewDetails(exercise)}
                 showComplete={true}

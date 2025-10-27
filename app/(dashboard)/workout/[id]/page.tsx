@@ -202,11 +202,11 @@ export default function RoutineDetail({
                     onRemoveExercise={() => handleRemoveExercise(exercise._id)}
                     onAddSet={() => handleAddSet(exercise._id)}
                     onRemoveSet={(setId) => handleRemoveSet(exercise._id, setId)}
-                    onUpdateSet={(setId, field, value) =>
-                      handleUpdateSet(exercise._id, setId, field, value)
+                    onUpdateSet={(exerciseId, setId, field, value) =>
+                      handleUpdateSet(exerciseId, setId, field, value)
                     }
-                    onToggleComplete={(setId) =>
-                      handleToggleComplete(exercise._id, setId)
+                    onToggleComplete={(exerciseId, setId) =>
+                      handleToggleComplete(exerciseId, setId)
                     }
                     onViewDetails={() => handleViewExerciseDetails(exercise)}
                     weightUnit={weightUnit}

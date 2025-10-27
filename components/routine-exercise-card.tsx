@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { TimeInput } from "@/components/time-input";
+import { DistanceInput } from "@/components/distance-input";
 import { Plus, Trash2, TrashIcon, Check, GripVertical } from "lucide-react";
 import type { ExerciseWithSets } from "./exercise-browser/types";
 import { requiresWeight, isCardioExercise } from "./exercise-browser/utils";
@@ -14,8 +15,8 @@ interface RoutineExerciseCardProps {
   onRemoveExercise: () => void;
   onAddSet: () => void;
   onRemoveSet: (setId: string) => void;
-  onUpdateSet: (setId: string, field: "reps" | "weight" | "time", value: number | string) => void;
-  onToggleComplete: (setId: string) => void;
+  onUpdateSet: (exerciseId: string, setId: string, field: "reps" | "weight" | "time", value: number | string) => void;
+  onToggleComplete: (exerciseId: string, setId: string) => void;
   onViewDetails: () => void;
   showComplete?: boolean; // Show complete checkbox (for workout mode)
   weightUnit?: "lbs" | "kgs"; // User's preferred weight unit
@@ -181,6 +182,7 @@ export function RoutineExerciseCard({
                       value={set.time || ""}
                       onChange={(value) =>
                         onUpdateSet(
+                          exercise._id,
                           set.id,
                           "time",
                           value
@@ -195,6 +197,7 @@ export function RoutineExerciseCard({
                       value={set.reps || ""}
                       onChange={(e) =>
                         onUpdateSet(
+                          exercise._id,
                           set.id,
                           "reps",
                           parseInt(e.target.value) || 0
@@ -207,21 +210,40 @@ export function RoutineExerciseCard({
 
                   {/* Weight/Distance Input (conditional) */}
                   {showWeightOrDistance && (
-                    <Input
-                      type="number"
-                      placeholder="0"
-                      value={set.weight || ""}
-                      onChange={(e) =>
-                        onUpdateSet(
-                          set.id,
-                          "weight",
-                          parseInt(e.target.value) || 0
-                        )
-                      }
-                      className="h-8 w-32"
-                      min="0"
-                      step={isCardio ? "0.1" : "1"}
-                    />
+                    <>
+                      {isCardio ? (
+                        <DistanceInput
+                          placeholder="0"
+                          value={set.weight}
+                          onChange={(value) =>
+                            onUpdateSet(
+                              exercise._id,
+                              set.id,
+                              "weight",
+                              value
+                            )
+                          }
+                          className="h-8 w-32"
+                        />
+                      ) : (
+                        <Input
+                          type="number"
+                          placeholder="0"
+                          value={set.weight || ""}
+                          onChange={(e) =>
+                            onUpdateSet(
+                              exercise._id,
+                              set.id,
+                              "weight",
+                              parseInt(e.target.value) || 0
+                            )
+                          }
+                          className="h-8 w-32"
+                          min="0"
+                          step="1"
+                        />
+                      )}
+                    </>
                   )}
 
                   {/* Action Buttons */}
@@ -231,7 +253,7 @@ export function RoutineExerciseCard({
                       <Button
                         variant={set.completed ? "default" : "ghost"}
                         size="sm"
-                        onClick={() => onToggleComplete(set.id)}
+                        onClick={() => onToggleComplete(exercise._id, set.id)}
                         disabled={!isValid && !set.completed}
                         className="h-8 w-8 p-0"
                         title={

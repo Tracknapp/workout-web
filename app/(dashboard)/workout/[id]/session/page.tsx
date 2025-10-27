@@ -57,6 +57,7 @@ export default function WorkoutSession({
 
   const saveRoutineExercises = useMutation(api.routines.saveRoutineExercises);
   const abandonSessionMutation = useMutation(api.sessions.abandonSession);
+  const addSetToExerciseMutation = useMutation(api.sessions.addSetToExercise);
 
   // Custom hooks for session and exercise management
   const {
@@ -75,12 +76,51 @@ export default function WorkoutSession({
     selectedExercises,
     setSelectedExercises,
     handleAddExercises: addExercises,
-    handleAddSet,
+    handleAddSet: addSetLocal,
     handleRemoveSet,
     handleUpdateSet: updateSetLocal,
     handleToggleComplete: toggleCompleteLocal,
     handleRemoveExercise,
   } = useRoutineExercises();
+
+  // Wrap handleAddSet to create the set in the database first
+  const handleAddSet = async (exerciseId: string) => {
+    try {
+      // Find the exercise to get its session exercise ID
+      const exercise = selectedExercises.find((ex) => ex._id === exerciseId);
+      if (!exercise) return;
+
+      const newSetNumber = exercise.sets.length + 1;
+
+      // Create the set in the database and get the real ID
+      const newSetId = await addSetToExerciseMutation({
+        sessionExerciseId: exerciseId as Id<"sessionExercises">,
+        setNumber: newSetNumber,
+      });
+
+      // Add the set to local state with the real database ID
+      setSelectedExercises((prev) =>
+        prev.map((ex) => {
+          if (ex._id === exerciseId) {
+            const isCardio = ex.targetMuscles.some((m) => m.toLowerCase() === "cardio");
+            const newSet = {
+              id: newSetId, // Use the real database ID
+              setNumber: newSetNumber,
+              reps: 0,
+              weight: isCardio ? 0 : ex.sets[0]?.weight || 0,
+              time: isCardio ? "" : undefined,
+              completed: false,
+            };
+            return { ...ex, sets: [...ex.sets, newSet] };
+          }
+          return ex;
+        })
+      );
+    } catch (error) {
+      console.error("Error adding set:", error);
+      toast.error("Failed to add set");
+    }
+  };
 
   const { handleToggleComplete, handleUpdateSet } = useSessionUpdates({
     exercises: selectedExercises,

@@ -69,11 +69,8 @@ export function useSessionUpdates({
     field: "reps" | "weight" | "time",
     value: number | string
   ) => {
-    // Update local state first
-    onUpdateSet(exerciseId, setId, field, value);
-
     try {
-      // Find the set to get current values
+      // Find the set to get current values BEFORE updating local state
       const exercise = exercises.find((ex) => ex._id === exerciseId);
       const set = exercise?.sets.find((s) => s.id === setId);
 
@@ -88,6 +85,9 @@ export function useSessionUpdates({
           distanceUnit: distanceUnit,
         });
       }
+
+      // Update local state after successful database update
+      onUpdateSet(exerciseId, setId, field, value);
     } catch (error) {
       console.error("Error updating set:", error);
       toast.error("Failed to save set update");
