@@ -70,27 +70,28 @@ export function useSessionUpdates({
     value: number | string
   ) => {
     try {
-      // Find the set to get current values BEFORE updating local state
+      // Find the set to get current values BEFORE updating
       const exercise = exercises.find((ex) => ex._id === exerciseId);
       const set = exercise?.sets.find((s) => s.id === setId);
 
-      if (set) {
-        // Update in database with all values
-        await updateSetValuesMutation({
-          setId: setId as Id<"sessionSets">,
-          reps: field === "reps" ? (value as number) : (set.reps || 0),
-          weight: field === "weight" ? (value as number) : set.weight,
-          weightUnit: weightUnit,
-          time: field === "time" ? (value as number) : set.time,
-          distanceUnit: distanceUnit,
-        });
-      }
+      if (!set) return;
 
-      // Update local state after successful database update
+      // Update local state FIRST (optimistic update)
       onUpdateSet(exerciseId, setId, field, value);
+
+      // Then save to database in background
+      await updateSetValuesMutation({
+        setId: setId as Id<"sessionSets">,
+        reps: field === "reps" ? (value as number) : (set.reps || 0),
+        weight: field === "weight" ? (value as number) : set.weight,
+        weightUnit: weightUnit,
+        time: field === "time" ? (value as number) : set.time,
+        distanceUnit: distanceUnit,
+      });
     } catch (error) {
       console.error("Error updating set:", error);
       toast.error("Failed to save set update");
+      // Could revert local state here if needed
     }
   };
 
