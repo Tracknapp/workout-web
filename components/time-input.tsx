@@ -107,10 +107,11 @@ export function TimeInput({
   const handleBlur = () => {
     setIsFocused(false);
 
-    // If there's partial input on blur, pad it and save
+    // If there's input on blur
     if (displayValue && displayValue.replace(/\D/g, "").length > 0) {
       const digits = displayValue.replace(/\D/g, "");
 
+      // Only pad and save if partial input (less than 6 digits)
       if (digits.length > 0 && digits.length < 6) {
         // Pad to 6 digits
         const paddedDigits = digits.padEnd(6, "0");
@@ -132,8 +133,9 @@ export function TimeInput({
         const totalSeconds = hours * 3600 + minutes * 60 + seconds;
         onChange(totalSeconds);
       }
-    } else {
-      // Empty input on blur - save as 0
+      // If 6 digits, it was already saved in handleChange, so do nothing
+    } else if (displayValue === "") {
+      // Only save 0 if the field is actually empty
       onChange(0);
     }
   };
