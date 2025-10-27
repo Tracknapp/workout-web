@@ -19,6 +19,7 @@ interface UseWorkoutSessionReturn {
   conflictingSession: { routineName: string; routineId: Id<"routines"> } | null;
   completeSession: () => Promise<void>;
   hasChanges: () => boolean;
+  startTime: number | null;
 }
 
 export function useWorkoutSession({
@@ -203,5 +204,6 @@ export function useWorkoutSession({
     conflictingSession,
     completeSession,
     hasChanges,
+    startTime: session?.startTime || null,
   };
 }

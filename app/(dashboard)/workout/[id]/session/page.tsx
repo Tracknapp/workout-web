@@ -6,6 +6,7 @@ import { api } from "@/convex/_generated/api";
 import { SessionExercisesList } from "@/components/session-exercises-list";
 import { ExerciseDetailDrawer } from "@/components/exercise-detail-drawer";
 import { ExerciseBrowser } from "@/components/exercise-browser";
+import { WorkoutTimer } from "@/components/workout-timer";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -66,6 +67,7 @@ export default function WorkoutSession({
     conflictingSession,
     completeSession: completeSessionFromHook,
     hasChanges,
+    startTime,
   } = useWorkoutSession({ routineId });
 
   const {
@@ -227,11 +229,14 @@ export default function WorkoutSession({
     <div className="max-w-4xl mx-auto p-4 sm:p-6 pb-24 sm:pb-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex items-center gap-2 sm:gap-4 flex-1 min-w-0">
           <Button variant="ghost" size="icon" onClick={() => router.back()}>
             <ArrowLeft className="size-4" />
           </Button>
-          <h1 className="text-xl sm:text-2xl font-bold truncate">{routineName}</h1>
+          <div className="flex flex-col gap-1 flex-1 min-w-0">
+            <h1 className="text-xl sm:text-2xl font-bold truncate">{routineName}</h1>
+            <WorkoutTimer startTime={startTime} />
+          </div>
         </div>
         {/* Desktop Actions */}
         <div className="hidden sm:flex gap-2">
