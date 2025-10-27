@@ -34,3 +34,10 @@ export function isCardioExercise(exercise: Exercise): boolean {
     muscle.toLowerCase() === "cardio"
   );
 }
+
+// Export isCardioExercise variant that works with ExerciseWithSets
+export function isCardioExerciseWithSets(exercise: { targetMuscles: string[] }): boolean {
+  return exercise.targetMuscles.some((muscle) =>
+    muscle.toLowerCase() === "cardio"
+  );
+}

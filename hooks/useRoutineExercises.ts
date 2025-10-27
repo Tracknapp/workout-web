@@ -4,7 +4,7 @@ import type {
   ExerciseWithSets,
   ExerciseSet,
 } from "@/components/exercise-browser/types";
-import { requiresWeight } from "@/components/exercise-browser/utils";
+import { requiresWeight, isCardioExercise } from "@/components/exercise-browser/utils";
 
 export function useRoutineExercises() {
   const [selectedExercises, setSelectedExercises] = useState<
@@ -29,11 +29,13 @@ export function useRoutineExercises() {
     setSelectedExercises((prev) =>
       prev.map((ex) => {
         if (ex._id === exerciseId) {
+          const isCardio = isCardioExercise(ex);
           const newSet: ExerciseSet = {
             id: `${exerciseId}-${Date.now()}`, // Generate unique ID
             setNumber: ex.sets.length + 1,
-            reps: 0,
-            weight: requiresWeight(ex) ? 0 : undefined,
+            reps: isCardio ? 0 : 0, // Always initialize with 0
+            weight: requiresWeight(ex) || isCardio ? 0 : undefined,
+            time: isCardio ? "" : undefined,
             completed: false,
           };
           return { ...ex, sets: [...ex.sets, newSet] };

@@ -81,7 +81,7 @@ export function useSessionUpdates({
         // Update in database with all values
         await updateSetValuesMutation({
           setId: setId as Id<"sessionSets">,
-          reps: field === "reps" ? (value as number) : set.reps,
+          reps: field === "reps" ? (value as number) : (set.reps || 0),
           weight: field === "weight" ? (value as number) : set.weight,
           weightUnit: weightUnit,
           time: field === "time" ? (value as string) : set.time,

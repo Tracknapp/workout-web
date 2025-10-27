@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { TimeInput } from "@/components/time-input";
 import { Plus, Trash2, TrashIcon, Check, GripVertical } from "lucide-react";
 import type { ExerciseWithSets } from "./exercise-browser/types";
 import { requiresWeight, isCardioExercise } from "./exercise-browser/utils";
@@ -175,19 +176,17 @@ export function RoutineExerciseCard({
 
                   {/* Time/Reps Input */}
                   {isCardio ? (
-                    <Input
-                      type="text"
+                    <TimeInput
                       placeholder="00:00:00"
                       value={set.time || ""}
-                      onChange={(e) =>
+                      onChange={(value) =>
                         onUpdateSet(
                           set.id,
                           "time",
-                          e.target.value
+                          value
                         )
                       }
                       className="h-8 w-32"
-                      pattern="[0-9]{2}:[0-9]{2}:[0-9]{2}"
                     />
                   ) : (
                     <Input
